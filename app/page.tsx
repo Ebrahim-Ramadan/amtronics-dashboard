@@ -5,6 +5,7 @@ import { OrdersTable } from "@/components/orders-table"
 import { SearchAndSort } from "@/components/search-and-sort"
 import { Pagination } from "@/components/pagination"
 import { LogoutButton } from "@/components/logout-button"
+import Image from "next/image"
 
 export interface Product {
   _id: string
@@ -174,7 +175,12 @@ console.log('Fetched orders:', orders);
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Pending Orders</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Image
+              src='/statistics.svg'
+              alt='Statistics'
+              width={24}
+              height={24}
+              />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalCount}</div>
