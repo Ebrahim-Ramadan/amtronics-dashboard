@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Search, ArrowUpDown, Loader2 } from "lucide-react"
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect, useCallback } from "react"
 
 export function SearchAndSort() {
   const router = useRouter()
@@ -22,26 +22,41 @@ export function SearchAndSort() {
 
   const currentSort = (searchParams.get("sort") as "latest" | "oldest") || "latest"
 
-  const updateSearchParams = (key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value) {
-      params.set(key, value)
-    } else {
-      params.delete(key)
-    }
-    params.delete("page") // Reset to first page when filtering/sorting
+  const updateSearchParams = useCallback(
+    (key: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (value) {
+        params.set(key, value)
+      } else {
+        params.delete(key)
+      }
+      params.delete("page")
 
-    startTransition(() => {
-      router.push(`?${params.toString()}`)
-    })
-  }
+      startTransition(() => {
+        router.push(`?${params.toString()}`)
+      })
+    },
+    [router, searchParams, startTransition]
+  )
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (searchValue !== searchParams.get("search")) {
+        updateSearchParams("search", searchValue)
+      }
+    }, 500)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [searchValue, searchParams, updateSearchParams])
 
   const handleSearch = (value: string) => {
     setSearchValue(value)
-    updateSearchParams("search", value)
   }
 
-  const handleSortChange = (newSort: "latest" | "oldest") => {
+  const handleSortChange = (newSortString: string) => {
+    const newSort = newSortString as "latest" | "oldest"
     setSortPending(true)
     updateSearchParams("sort", newSort)
   }
@@ -53,7 +68,7 @@ export function SearchAndSort() {
         <Input
           placeholder="Search by customer name or email..."
           value={searchValue}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setSearchValue(e.target.value)}
           className="pl-10 w-64"
           disabled={isPending}
         />

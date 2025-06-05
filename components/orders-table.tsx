@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Package, Eye } from "lucide-react"
 import type { Order, OrderItem } from "@/app/page"
 import { OrderDetailsModal } from "./order-details-modal"
+import { toast } from "sonner"
 
 interface OrdersTableProps {
   orders: Order[]
@@ -33,6 +34,16 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order)
     setModalOpen(true)
+  }
+
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id)
+    // toast({
+    //   title: "Copied!",
+    //   description: `Order ID ${id.slice(-8)} copied to clipboard`,
+    //   duration: 3000,
+    // })
+    toast.success(`Order ID ${id.slice(-8)} copied to clipboard`)
   }
 
   if (orders.length === 0) {
@@ -65,7 +76,12 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order._id}>
-                <TableCell className="font-mono text-sm">{order._id.slice(-8)}</TableCell>
+                <TableCell 
+                  className="font-mono text-sm cursor-pointer hover:text-blue-600" 
+                  onClick={() => handleCopyId(order._id)}
+                >
+                  {order._id.slice(-8)}
+                </TableCell>
                 <TableCell>
                   <div>
                     <div className="font-medium">{order.customerInfo.name}</div>
