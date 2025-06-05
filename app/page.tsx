@@ -4,6 +4,7 @@ import { Clock, Package, DollarSign, Loader2 } from "lucide-react"
 import { OrdersTable } from "@/components/orders-table"
 import { SearchAndSort } from "@/components/search-and-sort"
 import { Pagination } from "@/components/pagination"
+import { LogoutButton } from "@/components/logout-button"
 
 export interface Product {
   _id: string
@@ -99,22 +100,18 @@ function SortingLoadingSkeleton() {
     <div className="space-y-4">
       {/* Stats Cards with subtle loading */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
+        {[1, 2].map((i) => (
           <Card key={i} className="relative">
             <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
               <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
             </div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium opacity-50">
-                {i === 1 ? "Total Pending Orders" : i === 2 ? "Current Page" : "Orders Shown"}
+                {i === 1 ? "Total Pending Orders" : "Orders Shown / Current Page" }
               </CardTitle>
               {i === 1 ? (
                 <Clock className="h-4 w-4 text-muted-foreground opacity-50" />
-              ) : i === 2 ? (
-                <Package className="h-4 w-4 text-muted-foreground opacity-50" />
-              ) : (
-                <DollarSign className="h-4 w-4 text-muted-foreground opacity-50" />
-              )}
+              ) :  <Package className="h-4 w-4 text-muted-foreground opacity-50" />}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold opacity-50">...</div>
@@ -186,23 +183,13 @@ console.log('Fetched orders:', orders);
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Page</CardTitle>
+              <CardTitle className="text-sm font-medium">Orders Shown / Current Page</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {currentPage} of {totalPages}
+              {orders.length} / ({currentPage} of {totalPages})
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Orders Shown</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{orders.length}</div>
             </CardContent>
           </Card>
         </div>
@@ -254,11 +241,18 @@ export default function OrdersDashboard({ searchParams }: PageProps) {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Orders Dashboard</h1>
+            <div className="flex items-center gap-2 w-full">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Orders Dashboard</h1>
+            <LogoutButton />
+            </div>
             <p className="text-gray-600">Manage and track pending orders</p>
           </div>
 
-          <SearchAndSort />
+          {/* Search, Sort, and Logout */} 
+          <div className="flex items-center gap-4">
+            <SearchAndSort />
+            
+          </div>
         </div>
 
         <Suspense key={suspenseKey} fallback={isInitialLoad ? <LoadingSkeleton /> : <SortingLoadingSkeleton />}>
