@@ -67,7 +67,7 @@ interface PageProps {
 function LoadingSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
         {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader className="animate-pulse">
@@ -99,7 +99,7 @@ function SortingLoadingSkeleton() {
   return (
     <div className="space-y-4">
       {/* Stats Cards with subtle loading */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
         {[1, 2].map((i) => (
           <Card key={i} className="relative">
             <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
@@ -156,7 +156,7 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
   })
 
   try {
-    const response = await fetch(`/api/orders?${params}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/orders?${params}`, {
       cache: "no-store", // Ensure fresh data on each request
     })
 
@@ -170,7 +170,7 @@ console.log('Fetched orders:', orders);
     return (
       <>
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Pending Orders</CardTitle>
@@ -236,12 +236,12 @@ export default function OrdersDashboard({ searchParams }: PageProps) {
   const isInitialLoad = !searchParams.sort && !searchParams.search && !searchParams.page
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 w-full">
+            <div className="flex items-center gap-2 w-full justify-between">
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Orders Dashboard</h1>
             <LogoutButton />
             </div>
