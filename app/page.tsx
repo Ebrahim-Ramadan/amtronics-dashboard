@@ -156,7 +156,7 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
   })
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/orders?${params}`, {
+    const response = await fetch(`/api/orders?${params}`, {
       cache: "no-store", // Ensure fresh data on each request
     })
 
