@@ -47,7 +47,7 @@ export function SearchAndSort() {
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 flex-col md:flex-row">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input

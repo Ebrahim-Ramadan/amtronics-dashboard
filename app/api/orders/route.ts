@@ -30,9 +30,26 @@ export async function GET(request: NextRequest) {
     // Build sort object
     const sortObj = { createdAt: sort === "latest" ? -1 : 1 }
 
+    // Define projection to only include specific product fields
+    const projection = {
+      "items.product._id": 1,
+      "items.product.en_name": 1,
+      "items.product.price": 1,
+      "items.product.sku": 1,
+      "items.product.barcode": 1,
+      "items.product.image": 1,
+      "items.quantity": 1,
+      customerInfo: 1,
+      total: 1,
+      discount: 1,
+      promoCode: 1,
+      status: 1,
+      createdAt: 1,
+      _id: 1,
+    }
     // Execute queries in parallel
     const [orders, totalCount] = await Promise.all([
-      collection.find(query).sort(sortObj).skip(skip).limit(limit).toArray(),
+      collection.find(query).project(projection).sort(sortObj).skip(skip).limit(limit).toArray(),
       collection.countDocuments(query),
     ])
 

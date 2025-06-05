@@ -152,7 +152,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
           <CardContent>
             <div className="space-y-4">
               {order.items.map((item, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
+                <div key={index} className="flex items-start gap-4 p-4 border rounded-lg flex-col md:flex-row">
                   <div className="flex-shrink-0">
                     <img
                       src={item.product.image?.split(",")[0] || "/placeholder.svg?height=80&width=80"}
@@ -165,7 +165,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm line-clamp-2">{item.product.en_name}</h4>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.product.en_description}</p>
+                    {/* <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.product.en_description}</p> */}
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-xs text-gray-500">SKU: {item.product.sku}</span>
                       {item.product.barcode && (

@@ -168,6 +168,7 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
     }
 
     const { orders, totalCount, currentPage, totalPages }: OrdersResult = await response.json()
+console.log('Fetched orders:', orders);
 
     return (
       <>
@@ -249,7 +250,7 @@ export default function OrdersDashboard({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
