@@ -31,6 +31,15 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     return items.reduce((total, item) => total + item.quantity, 0)
   }
 
+  const getItemsSubtotal = (items: OrderItem[]) => {
+    return items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  }
+
+  const getCalculatedTotal = (order: Order) => {
+    const subtotal = getItemsSubtotal(order.items);
+    return subtotal - (order.discount || 0);
+  }
+
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order)
     setModalOpen(true)
@@ -95,7 +104,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">
-                  ${order.total.toFixed(2)}
+                  ${getCalculatedTotal(order).toFixed(2)}
                   {order.discount > 0 && (
                     <div className="text-sm text-green-600">-${order.discount.toFixed(2)} discount</div>
                   )}

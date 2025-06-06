@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Package, User, MapPin, Calendar, DollarSign, Tag } from "lucide-react"
+import { Package, User, MapPin, Calendar, DollarSign, Tag, Copy } from "lucide-react"
 import type { Order } from "@/app/page"
+import { toast } from "sonner"
 
 interface OrderDetailsModalProps {
   order: Order | null
@@ -33,6 +34,11 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
     return order.items.reduce((total, item) => total + item.product.price * item.quantity, 0)
   }
 
+  const getCalculatedTotal = () => {
+    const subtotal = getItemsTotal();
+    return subtotal - (order.discount || 0);
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -41,7 +47,15 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
             <Package className="h-5 w-5" />
             Order Details
           </DialogTitle>
-          <DialogDescription>Order ID: {order._id}</DialogDescription>
+          <DialogDescription
+          onClick={() => {
+            navigator.clipboard.writeText(order._id)
+            toast.success("Promo Code copied to clipboard")
+          }}
+          className="cursor-pointer flex gap-2 items-center"
+          >Order ID: {order._id} 
+          <Copy size='14' className="text-[#00BED5]" />
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1  gap-2 ">
@@ -77,8 +91,11 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
               {order.promoCode && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Promo Code</span>
-                  <Badge variant="outline" className="text-xs">
-                    <Tag className="h-3 w-3 mr-1" />
+                  <Badge variant="outline" className="text-xs cursor-pointer" onClick={() => {
+                    navigator.clipboard.writeText(order.promoCode)
+                    toast.success("Promo Code copied to clipboard")
+                  }}>
+                    <Tag className="h-3 w-3 mr-1" />  
                     {order.promoCode}
                   </Badge>
                 </div>
@@ -86,7 +103,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
               <Separator />
               <div className="flex justify-between items-center text-lg font-bold">
                 <span>Total</span>
-                <span>${order.total.toFixed(2)}</span>
+                <span className="text-[#00BED5]">${getCalculatedTotal().toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-sm text-gray-600">
                 <span className="flex items-center gap-1">
