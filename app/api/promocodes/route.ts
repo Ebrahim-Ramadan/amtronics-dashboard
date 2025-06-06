@@ -55,7 +55,7 @@ export async function PATCH(request: NextRequest) {
 
       // Find and update the promo code
       const result = await collection.updateOne(
-        { _id: new (require('mongodb').ObjectId)(id) },
+        { _id: new ObjectId(id) },
         { $set: { active: active } }
       );
 
