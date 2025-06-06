@@ -39,21 +39,6 @@ export function SearchAndSort() {
     [router, searchParams, startTransition]
   )
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (searchValue !== searchParams.get("search")) {
-        updateSearchParams("search", searchValue)
-      }
-    }, 500)
-
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [searchValue, searchParams, updateSearchParams])
-
-  const handleSearch = (value: string) => {
-    setSearchValue(value)
-  }
 
   const handleSortChange = (newSortString: string) => {
     const newSort = newSortString as "latest" | "oldest"
@@ -69,6 +54,11 @@ export function SearchAndSort() {
           placeholder="Search by customer name or email..."
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              updateSearchParams("search", searchValue);
+            }
+          }}
           className="pl-10 w-64"
           disabled={isPending}
         />
