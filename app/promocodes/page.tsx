@@ -6,7 +6,9 @@ import { LogoutButton } from "@/components/logout-button"
 import { AddPromoCodeButton } from "@/components/add-promo-code-button"
 import { PromoCodesTable } from "@/components/promo-codes-table"
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from "@/components/ui/button"
 
 export interface PromoCode {
   _id: string
@@ -60,9 +62,12 @@ export default function PromoCodesPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 w-full justify-between">
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Promo Codes</h1>
-            <LogoutButton />
+            <div className="flex items-center gap-2 w-full"> 
+              <Link href="/">
+            <ArrowLeft size='20' />
+            </Link>
+            <h1 className="text-xl md::text-3xl font-bold text-gray-900">Promo Codes</h1>
+           
             </div>
             <p className="text-gray-600">Add and manage promo codes</p>
           </div>

@@ -30,8 +30,8 @@ export function LogoutButton() {
   }
 
   return (
-    <Button variant="destructive" size='sm' className="cursor-pointer" onClick={handleLogout} disabled={isLoading}>
-      <LogOut className="h-4 w-4" />
+    <Button variant="destructive"  size='sm' className="cursor-pointer mt-4" onClick={handleLogout} disabled={isLoading}>
+      <LogOut className="h-2 w-2" />
       {isLoading ? "Logging Out..." : "Logout"}
     </Button>
   )

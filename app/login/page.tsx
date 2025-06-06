@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import Image from "next/image"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -46,7 +47,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle className="text-center text-2xl">Login</CardTitle>
+          <Image
+          src='/amtronics-logo.webp'
+          className="mx-auto"
+          alt="Amtronics Logo"
+          width={100}
+          height={100}
+          />
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-4">
