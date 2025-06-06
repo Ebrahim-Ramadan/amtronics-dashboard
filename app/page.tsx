@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { Topleftmenu } from "@/components/top-left-menu"
 
 export interface Product {
   _id: string
@@ -252,36 +253,9 @@ export default function OrdersDashboard({ searchParams }: PageProps) {
       <div className="w-full mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             {/* Dropdown Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Menu">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/">
-                    Orders Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                  <Link href="/promocodes">
-                    Promo Codes
-                  </Link>
-                </DropdownMenuItem>
-                 {/* Future Products Link */}
-                 <DropdownMenuItem asChild>
-                  <Link href="/products">
-                    Products
-                  </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                 <LogoutButton />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Topleftmenu/>
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Orders Dashboard</h1>
           </div>
 

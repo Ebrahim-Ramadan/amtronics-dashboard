@@ -21,7 +21,7 @@ export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) 
     setIsLoading(true)
 
     // Basic validation
-    if (!code || percentage === "" || !expiry) {
+    if (code.trim() === '' || percentage === "" || !expiry) {
       toast.error("Please fill in all required fields.")
       setIsLoading(false)
       return
@@ -30,7 +30,7 @@ export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) 
     const percentageNumber = Number(percentage)
     console.log('percentageNumber', percentageNumber)
     
-    if (isNaN(percentageNumber) || percentageNumber < 0 || percentageNumber > 100) {
+    if (isNaN(percentageNumber) || percentageNumber < 1 || percentageNumber > 100) {
       toast.error("Percentage must be a number between 0 and 100.")
       setIsLoading(false)
       return

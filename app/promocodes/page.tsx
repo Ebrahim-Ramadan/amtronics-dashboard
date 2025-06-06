@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
+import { Topleftmenu } from "@/components/top-left-menu"
 
 export interface PromoCode {
   _id: string
@@ -20,7 +21,7 @@ export interface PromoCode {
 }
 
 export default function PromoCodesPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,10 +63,9 @@ export default function PromoCodesPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 w-full"> 
-              <Link href="/">
-            <ArrowLeft size='20' />
-            </Link>
+            <div className="flex items-center gap-2 md:gap-4 w-full"> 
+            <Topleftmenu/>
+
             <h1 className="text-xl md::text-3xl font-bold text-gray-900">Promo Codes</h1>
            
             </div>
