@@ -77,7 +77,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
-        {[1, 2, 3].map((i) => (
+        {[1, 2].map((i) => (
           <Card key={i}>
             <CardHeader className="animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -107,26 +107,24 @@ function LoadingSkeleton() {
 function SortingLoadingSkeleton() {
   return (
     <div className="space-y-4">
-      {/* Stats Cards with subtle loading */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
         {[1, 2].map((i) => (
-          <Card key={i} className="relative">
-            <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-            </div>
+          <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium opacity-50">
+              <CardTitle className="text-sm font-medium">
                 {i === 1 ? "Total Pending Orders" : "Orders Shown / Current Page" }
               </CardTitle>
               {i === 1 ? (
-                <Clock className="h-4 w-4 text-muted-foreground opacity-50" />
-              ) :  <Package className="h-4 w-4 text-muted-foreground opacity-50" />}
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              ) :  <Package className="h-4 w-4 text-muted-foreground" />}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold opacity-50">...</div>
+              <div className="text-2xl font-bold">...</div>
             </CardContent>
           </Card>
         ))}
+      
       </div>
 
       {/* Orders Table with loading overlay */}
@@ -288,10 +286,7 @@ export default function OrdersDashboard({ searchParams }: PageProps) {
           </div>
 
           {/* Search, Sort, and Logout */}
-          <div className="flex items-center gap-4">
-            <SearchAndSort />
-            
-          </div>
+          <SearchAndSort />
         </div>
 
         <Suspense key={suspenseKey} fallback={isInitialLoad ? <LoadingSkeleton /> : <SortingLoadingSkeleton />}>

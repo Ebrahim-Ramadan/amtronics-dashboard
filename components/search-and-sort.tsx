@@ -47,8 +47,8 @@ export function SearchAndSort() {
   }
 
   return (
-    <div className="flex items-center gap-4 flex-col md:flex-row">
-      <div className="relative">
+    <div className="flex items-center gap-2 md:gap-4 flex-col md:flex-row">
+      <div className="relative w-full">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
           placeholder="Search by customer name or email..."
@@ -59,13 +59,13 @@ export function SearchAndSort() {
               updateSearchParams("search", searchValue);
             }
           }}
-          className="pl-10 w-64"
+          className="pl-10 w-full md:w-64"
           disabled={isPending}
         />
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <DropdownMenu >
+        <DropdownMenuTrigger asChild className="text-end self-end ">
           <Button variant="outline" disabled={isPending}>
             {sortPending && isPending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

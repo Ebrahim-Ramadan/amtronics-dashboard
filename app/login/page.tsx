@@ -40,20 +40,23 @@ export default function LoginPage() {
       setError("An unexpected error occurred")
     }
 
-    setIsLoading(false)
+    setInterval(() => {
+      setIsLoading(false)
+    }, 200);
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <Card className="w-[350px]">
-        <CardHeader>
-          <Image
+    <div className="flex px-2 gap-4 w-full h-[90vh] items-center flex-col justify-center bg-gray-100">
+    <Image
           src='/amtronics-logo.webp'
           className="mx-auto"
           alt="Amtronics Logo"
           width={100}
           height={100}
           />
+      <Card className="w-full md:w-[350px]">
+       <CardHeader>
+        <CardTitle className="text-center text-2xl font-bold">Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-4">
