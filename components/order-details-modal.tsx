@@ -6,6 +6,9 @@ import { Separator } from "@/components/ui/separator"
 import { Package, User, MapPin, Calendar, DollarSign, Tag, Copy } from "lucide-react"
 import type { Order } from "@/app/page"
 import { toast } from "sonner"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 interface OrderDetailsModalProps {
   order: Order | null
@@ -37,6 +40,36 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
   const getCalculatedTotal = () => {
     const subtotal = getItemsTotal();
     return subtotal - (order.discount || 0);
+  }
+
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  const handleMarkAsCompleted = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: order._id, status: "completed" }),
+      })
+
+      if (response.ok) {
+        toast.success("Order marked as completed!")
+        onOpenChange(false) // Close the modal on success
+        router.refresh()
+      } else {
+        const data = await response.json()
+        toast.error(data.message || "Failed to update order status.")
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error)
+      toast.error("An unexpected error occurred.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -74,6 +107,11 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
                   {order.status}
                 </Badge>
               </div>
+              {order.status === "pending" && (
+                <Button onClick={handleMarkAsCompleted} disabled={isLoading} className="w-full">
+                  {isLoading ? "Marking as Completed..." : "Mark as Completed"}
+                </Button>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Total Items</span>
                 <span className="font-medium">{getItemsCount()} items</span>

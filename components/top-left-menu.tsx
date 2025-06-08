@@ -11,7 +11,7 @@ import { Menu } from 'lucide-react'
 import { LogoutButton } from './logout-button'
 export const Topleftmenu = () => {
   return ( 
-  <DropdownMenu>
+  <DropdownMenu modal={true}>
     <DropdownMenuTrigger asChild>
       <Button variant="ghost" size="icon" aria-label="Menu">
         <Menu className="h-6 w-6" />

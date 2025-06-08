@@ -6,8 +6,14 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Package, Eye, Copy } from "lucide-react"
 import type { Order, OrderItem } from "@/app/page"
-import { OrderDetailsModal } from "./order-details-modal"
 import { toast } from "sonner"
+import dynamic from "next/dynamic"
+
+// Dynamically import OrderDetailsModal
+const OrderDetailsModal = dynamic(() => import("./order-details-modal").then((mod) => mod.OrderDetailsModal), {
+  ssr: false, // Ensure this component is not server-rendered
+  loading: () => null, // Or a loading spinner if desired
+})
 
 interface OrdersTableProps {
   orders: Order[]
