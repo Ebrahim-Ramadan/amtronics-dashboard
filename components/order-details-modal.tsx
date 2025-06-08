@@ -179,7 +179,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
             e.currentTarget.src = "/placeholder.svg?height=80&width=80";
           }}
         />
-        <div className="absolute -top-2 -right-2 bg-[#00B8DB] text-white text-xs font-medium px-2 py-1 rounded-full ">
+        <div className="absolute -top-2 -right-2 bg-[#00B8DB] text-white text-xs font-medium px-2 py-1 rounded-full">
           {item.quantity}
         </div>
       </div>

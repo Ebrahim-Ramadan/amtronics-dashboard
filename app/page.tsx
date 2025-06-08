@@ -1,19 +1,11 @@
 import { Suspense } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Clock, Package, DollarSign, Loader2, Menu } from "lucide-react"
+import { Clock, Package,  Loader2 } from "lucide-react"
 import { OrdersTable } from "@/components/orders-table"
 import { SearchAndSort } from "@/components/search-and-sort"
 import { Pagination } from "@/components/pagination"
-import { LogoutButton } from "@/components/logout-button"
 import Image from "next/image"
-import Link from "next/link"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
+
 import { Topleftmenu } from "@/components/top-left-menu"
 
 export interface Product {
