@@ -7,10 +7,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package, LogOut, Menu } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package,  Menu } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export const Topleftmenu = () => {
   const pathname = usePathname();
@@ -32,7 +33,7 @@ export const Topleftmenu = () => {
         className="w-64 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 font-medium transition-all duration-200 ease-in-out transform origin-top scale-95 hover:scale-100 space-y-1"
       >
         <DropdownMenuItem asChild>
-          <a
+          <Link
             href="/"
             className={cn(
               "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
@@ -42,10 +43,10 @@ export const Topleftmenu = () => {
           >
             <LayoutDashboard className="h-4 w-4" />
             Orders Dashboard
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a
+          <Link
             href="/promocodes"
             className={cn(
               "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
@@ -55,10 +56,10 @@ export const Topleftmenu = () => {
           >
             <Ticket className="h-4 w-4" />
             Promo Codes
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a
+          <Link
             href="/products"
             className={cn(
               "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
@@ -68,7 +69,7 @@ export const Topleftmenu = () => {
           >
             <Package className="h-4 w-4" />
             Products
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <LogoutButton

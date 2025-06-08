@@ -17,6 +17,9 @@ interface OrderDetailsModalProps {
 }
 
 export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsModalProps) {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
   if (!order) return null
 
   const formatDate = (dateString: string) => {
@@ -42,8 +45,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
     return subtotal - (order.discount || 0);
   }
 
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+
 
   const handleMarkAsCompleted = async () => {
     setIsLoading(true)
