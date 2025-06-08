@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Package, Eye } from "lucide-react"
+import { Package, Eye, Copy } from "lucide-react"
 import type { Order, OrderItem } from "@/app/page"
 import { OrderDetailsModal } from "./order-details-modal"
 import { toast } from "sonner"
@@ -47,11 +47,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id)
-    // toast({
-    //   title: "Copied!",
-    //   description: `Order ID ${id.slice(-8)} copied to clipboard`,
-    //   duration: 3000,
-    // })
     toast.success(`Order ID ${id.slice(-8)} copied to clipboard`)
   }
 
@@ -69,7 +64,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto px-2 md:px-4">
         <Table>
           <TableHeader>
             <TableRow>
@@ -89,7 +84,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   className="font-mono text-sm cursor-pointer hover:text-blue-600" 
                   onClick={() => handleCopyId(order._id)}
                 >
-                  {order._id.slice(-8)}
+                  {order._id.slice(-8)} 
                 </TableCell>
                 <TableCell>
                   <div>

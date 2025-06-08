@@ -42,7 +42,7 @@ export default function LoginPage() {
 
     setInterval(() => {
       setIsLoading(false)
-    }, 200);
+    }, 1000);
   }
 
   return (

@@ -167,37 +167,40 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 border rounded-lg flex-col md:flex-row">
-                  <div className="flex-shrink-0">
-                    <img
-                      src={item.product.image?.split(",")[0] || "/placeholder.svg?height=80&width=80"}
-                      alt={item.product.en_name}
-                      className="w-16 h-16 object-cover rounded-md border"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg?height=80&width=80"
-                      }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm line-clamp-2">{item.product.en_name}</h4>
-                    {/* <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.product.en_description}</p> */}
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-xs text-gray-500">SKU: {item.product.sku}</span>
-                      {item.product.barcode && (
-                        <span className="text-xs text-gray-500">Barcode: {item.product.barcode}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0 text-right">
-                    <div className="text-sm font-medium">${item.product.price.toFixed(2)}</div>
-                    <div className="text-xs text-gray-500">Qty: {item.quantity}</div>
-                    <div className="text-sm font-bold mt-1">${(item.product.price * item.quantity).toFixed(2)}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="space-y-4">
+  {order.items.map((item, index) => (
+    <div key={index} className="flex items-start gap-4 p-4 border rounded-lg flex-col md:flex-row">
+      <div className="flex-shrink-0 relative">
+        <img
+          src={item.product.image?.split(",")[0] || "/placeholder.svg?height=80&width=80"}
+          alt={item.product.en_name}
+          className="w-16 h-16 object-cover rounded-md border"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.svg?height=80&width=80";
+          }}
+        />
+        <div className="absolute -top-2 -right-2 bg-[#00B8DB] text-white text-xs font-medium px-2 py-1 rounded-full ">
+          {item.quantity}
+        </div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className="font-medium text-sm line-clamp-2">{item.product.en_name}</h4>
+        <div className="flex items-center gap-4 mt-2">
+          {item.product.sku && (
+            <span className="text-xs text-gray-500">SKU: {item.product.sku}</span>
+          )}
+          {item.product.barcode && (
+            <span className="text-xs text-gray-500">Barcode: {item.product.barcode}</span>
+          )}
+        </div>
+      </div>
+      <div className="flex-shrink-0 text-right">
+        <div className="text-sm font-medium">${item.product.price.toFixed(2)}</div>
+        <div className="text-sm font-bold mt-1">${(item.product.price * item.quantity).toFixed(2)}</div>
+      </div>
+    </div>
+  ))}
+</div>
           </CardContent>
         </Card>
       </DialogContent>

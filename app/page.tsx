@@ -212,9 +212,7 @@ console.log('Fetched orders:', orders);
           <CardHeader>
             <CardTitle>Pending Orders</CardTitle>
           </CardHeader>
-          <CardContent>
-            <OrdersTable orders={orders} />
-          </CardContent>
+          <OrdersTable orders={orders} />
         </Card>
 
         {/* Pagination */}
