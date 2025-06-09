@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
-import { ObjectId, Sort } from 'mongodb'
+import { ObjectId, Sort, SortDirection } from 'mongodb'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,13 +9,14 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "10")
     const sort = searchParams.get("sort") || "latest"
     const search = searchParams.get("search") || ""
+    const status = searchParams.get("status") || "pending" // Get status from query params, default to "pending"
 
     const client = await clientPromise
     const db = client.db("amtronics") // Replace with your actual database name
     const collection = db.collection("orders") // Replace with your actual collection name
 
-    // Build the query
-    const query: any = { status: "pending" }
+    // Build the query dynamically based on status
+    const query: any = { status: status }
 
     // Add search functionality
     if (search) {

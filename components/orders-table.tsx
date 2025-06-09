@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Package, Eye, Copy } from "lucide-react"
+import { Package, Eye } from "lucide-react"
 import type { Order, OrderItem } from "@/app/page"
 import { toast } from "sonner"
 import dynamic from "next/dynamic"
@@ -111,10 +111,17 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                    {order.status}
-                  </Badge>
-                </TableCell>
+  <Badge
+    variant="secondary"
+    className={
+      order.status === "completed"
+        ? "bg-green-100 text-green-800"
+        : "bg-yellow-100 text-yellow-800"
+    }
+  >
+    {order.status}
+  </Badge>
+</TableCell>
                 <TableCell className="text-sm text-gray-500">{formatDate(order.createdAt)}</TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>

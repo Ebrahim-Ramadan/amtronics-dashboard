@@ -105,7 +105,11 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Status</span>
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                <Badge variant="secondary"  className={
+      order.status === "completed"
+        ? "bg-green-100 text-green-800"
+        : "bg-yellow-100 text-yellow-800"
+    }>
                   {order.status}
                 </Badge>
               </div>
