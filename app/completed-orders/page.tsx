@@ -179,7 +179,7 @@ console.log('Fetched orders:', orders);
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Completed Orders</CardTitle>
               <Image
               src='/statistics.svg'
               alt='Statistics'
@@ -208,7 +208,7 @@ console.log('Fetched orders:', orders);
         {/* Orders Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Orders</CardTitle>
+            <CardTitle>Completed Orders</CardTitle>
           </CardHeader>
           <OrdersTable orders={orders} />
         </Card>
