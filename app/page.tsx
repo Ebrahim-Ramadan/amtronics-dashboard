@@ -166,7 +166,20 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
 
     const { orders, totalCount, currentPage, totalPages }: OrdersResult = await response.json()
 console.log('Fetched orders:', orders);
-
+if (orders.length === 0) {
+  return (
+    <Card>
+      <CardContent className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-lg font-medium text-gray-900">No orders found</p>
+          <p className="text-sm text-gray-500">
+            Try adjusting your search or sort criteria.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
     return (
       <>
         {/* Stats Cards */}

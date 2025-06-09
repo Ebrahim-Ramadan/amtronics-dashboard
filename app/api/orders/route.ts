@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "pending" // Get status from query params, default to "pending"
 
     const client = await clientPromise
-    const db = client.db("amtronics") // Replace with your actual database name
-    const collection = db.collection("orders") // Replace with your actual collection name
+    const db = client.db("amtronics") 
+    const collection = db.collection("orders") 
 
     // Build the query dynamically based on status
     const query: any = { status: status }
@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
       collection.find(query).project(projection).sort(sortObj).skip(skip).limit(limit).toArray(),
       collection.countDocuments(query),
     ])
+console.log('fetching...');
 
     // Transform MongoDB documents
     const transformedOrders = orders.map((order) => ({
