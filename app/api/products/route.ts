@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         { "barcode": Number(search) || 0 },
         { "_id": /^[0-9a-fA-F]{24}$/.test(search) ? new ObjectId(search) : null }, // Only apply if valid ObjectId
         { "id": Number(search) }, // Match exact Int32
-      ].filter(Boolean); // Remove null entries
+      ].filter(Boolean); // Filter out null values for _id
     }
     const skip = (page - 1) * limit
 
@@ -57,25 +57,34 @@ export async function GET(request: NextRequest) {
     const projection = {
       _id: 1,
       id: 1,
-      barcode: 1,
       sku: 1,
       en_name: 1,
       ar_name: 1,
       en_description: 1,
       ar_description: 1,
+      en_long_description: 1,
+      ar_long_description: 1,
+      en_main_category: 1,
+      ar_main_category: 1,
+      en_category: 1,
+      ar_category: 1,
       price: 1,
       image: 1,
       quantity_on_hand: 1,
       sold_quantity: 1,
+      visible_in_catalog: 1,
+      visible_in_search: 1,
+      slug_url: 1,
+      discount: 1,
+      discount_type: 1,
+      ar_brand: 1,
+      en_brand: 1,
     }
 
     const [products, totalCount] = await Promise.all([
       collection.find(query).project(projection).skip(skip).limit(limit).toArray(),
       collection.countDocuments(query),
     ])
-
-
-
 
     const transformedProducts = products.map((product) => ({
       ...product,
@@ -106,13 +115,12 @@ export async function POST(request: NextRequest) {
     const newProduct = {
       ...productData,
       id: productData.id || await collection.countDocuments() + 1, // Simple auto-increment
-      barcode: productData.barcode || Math.floor(Math.random() * 1000000000), // Random barcode
       sold_quantity: 0, // Initialize sold_quantity
       createdAt: new Date(),
     }
 
-    // Destructure to omit _id before inserting if it somehow exists
-    const { _id, ...dataToInsert } = newProduct;
+    // Destructure to omit _id and barcode before inserting if it somehow exists
+    const { _id, barcode, ...dataToInsert } = newProduct;
 
     const result = await collection.insertOne(dataToInsert)
 
@@ -135,15 +143,9 @@ export async function PATCH(request: NextRequest) {
     const db = client.db("amtronics");
     const collection = db.collection("products");
 
-    const { _id, ...updateData } = productData;
+    const { _id, id, barcode, ...updateData } = productData; // Exclude id and barcode from updateData
 
-    // Convert barcode and id to numbers if they exist in updateData and are not already numbers
-    if (updateData.barcode !== undefined && typeof updateData.barcode === 'string') {
-      updateData.barcode = Number(updateData.barcode);
-    }
-    if (updateData.id !== undefined && typeof updateData.id === 'string') {
-      updateData.id = Number(updateData.id);
-    }
+    // Convert to numbers if they exist in updateData and are not already numbers
     if (updateData.price !== undefined && typeof updateData.price === 'string') {
       updateData.price = Number(updateData.price);
     }
@@ -152,6 +154,15 @@ export async function PATCH(request: NextRequest) {
     }
     if (updateData.sold_quantity !== undefined && typeof updateData.sold_quantity === 'string') {
       updateData.sold_quantity = Number(updateData.sold_quantity);
+    }
+    if (updateData.visible_in_catalog !== undefined && typeof updateData.visible_in_catalog === 'string') {
+      updateData.visible_in_catalog = Number(updateData.visible_in_catalog);
+    }
+    if (updateData.visible_in_search !== undefined && typeof updateData.visible_in_search === 'string') {
+      updateData.visible_in_search = Number(updateData.visible_in_search);
+    }
+    if (updateData.discount !== undefined && typeof updateData.discount === 'string') {
+      updateData.discount = Number(updateData.discount);
     }
 
     const result = await collection.updateOne(
