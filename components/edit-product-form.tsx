@@ -77,6 +77,10 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
       toast.error("Quantity on Hand must be a positive number.")
       return
     }
+    if (!formData.sold_quantity || formData.sold_quantity < 0) {
+      toast.error("Sold Quantity must be a non-negative number.")
+      return
+    }
     if (!formData.slug_url.trim()) {
       toast.error("Slug URL is required.")
       return
@@ -87,6 +91,10 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
     }
     if (formData.visible_in_search === undefined || formData.visible_in_search < 0) {
       toast.error("Visible in Search must be a non-negative number.")
+      return
+    }
+    if (formData.discount !== undefined && formData.discount > 100) {
+      toast.error("Discount cannot be more than 100.")
       return
     }
 

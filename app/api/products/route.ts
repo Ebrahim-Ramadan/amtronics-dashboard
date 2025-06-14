@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb'
 export interface Product {
   _id?: string // MongoDB ObjectId
   id: number
-  barcode: number
+  barcode?: number
   sku: string
   en_name: string
   ar_name: string
@@ -16,6 +16,13 @@ export interface Product {
   image: string
   quantity_on_hand: number
   sold_quantity: number
+  visible_in_catalog: number
+  visible_in_search: number
+  slug_url: string
+  discount?: number
+  discount_type?: string
+  ar_brand?: string
+  en_brand?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -79,6 +86,7 @@ export async function GET(request: NextRequest) {
       discount_type: 1,
       ar_brand: 1,
       en_brand: 1,
+      barcode: 1,
     }
 
     const [products, totalCount] = await Promise.all([

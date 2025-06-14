@@ -30,7 +30,7 @@ export interface Product {
   discount_type?: string
   ar_brand?: string
   en_brand?: string
-  barcode?: string // Optional field for barcode
+  barcode?: number // Optional field for barcode
 }
 
 interface ProductsResult {

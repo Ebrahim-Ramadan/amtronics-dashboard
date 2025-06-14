@@ -26,7 +26,7 @@ export function AddProductButton({ onSuccess }: AddProductButtonProps) {
           Add New Product
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
         </DialogHeader>

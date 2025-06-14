@@ -104,6 +104,10 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
       toast.error("Visible in Search must be a non-negative number.")
       return
     }
+    if (formData.discount !== undefined && formData.discount > 100) {
+      toast.error("Discount cannot be more than 100.")
+      return
+    }
 
     startTransition(async () => {
       try {
