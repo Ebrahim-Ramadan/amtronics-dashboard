@@ -102,14 +102,14 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
         <div><strong>SKU:</strong> {product.sku}</div>
         <div><strong>English Name:</strong> {product.en_name}</div>
         <div><strong>Arabic Name:</strong> {product.ar_name}</div>
-        <div><strong>Price:</strong> ${product.price.toFixed(2)}</div>
+        <div><strong>Price:</strong> KD{product.price.toFixed(2)}</div>
         <div><strong>Quantity on Hand:</strong> {product.quantity_on_hand}</div>
         <div><strong>Sold Quantity:</strong> {product.sold_quantity}</div>
         {product.image && (
           <div>
             <strong>Image:</strong>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={product.image} alt={product.en_name} className="mt-2 w-32 h-32 object-cover" />
+            <img src={product.image.split(',')[0]} alt={product.en_name} className="mt-2 w-32 h-32 object-cover" />
           </div>
         )}
       </CardContent>

@@ -124,12 +124,12 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Subtotal</span>
-                <span className="font-medium">${getItemsTotal().toFixed(2)}</span>
+                <p className="text-right"><span className="font-medium">KD{getItemsTotal().toFixed(2)}</span></p>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Discount</span>
-                  <span className="font-medium text-green-600">-${order.discount.toFixed(2)}</span>
+                  <p className="text-right"><span className="font-medium text-green-600">-KD{order.discount.toFixed(2)}</span></p>
                 </div>
               )}
               {order.promoCode && (
@@ -147,7 +147,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
               <Separator />
               <div className="flex justify-between items-center text-lg font-bold">
                 <span>Total</span>
-                <span className="text-[#00BED5]">${getCalculatedTotal().toFixed(2)}</span>
+                <span className="text-[#00BED5]">KD{getCalculatedTotal().toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-sm text-gray-600">
                 <span className="flex items-center gap-1">
@@ -239,8 +239,8 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
         </div>
       </div>
       <div className="flex-shrink-0 text-right">
-        <div className="text-sm font-medium">${item.product.price.toFixed(2)}</div>
-        <div className="text-sm font-bold mt-1">${(item.product.price * item.quantity).toFixed(2)}</div>
+        <div className="text-sm font-medium">KD{item.product.price.toFixed(2)}</div>
+        <div className="text-sm font-bold mt-1">KD{(item.product.price * item.quantity).toFixed(2)}</div>
       </div>
     </div>
   ))}

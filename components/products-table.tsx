@@ -73,7 +73,7 @@ export function ProductsTable({ products, onProductDeleted }: ProductsTableProps
                 <TableCell>{product.sku}</TableCell>
                 <TableCell>{product.en_name}</TableCell>
                 <TableCell>{product.ar_name}</TableCell>
-                <TableCell>${product.price.toFixed(2)}</TableCell>
+                <TableCell>KD{product.price.toFixed(2)}</TableCell>
                 <TableCell>{product.quantity_on_hand}</TableCell>
                 <TableCell>{product.sold_quantity}</TableCell>
                 <TableCell>
