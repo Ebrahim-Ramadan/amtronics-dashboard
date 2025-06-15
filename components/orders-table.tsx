@@ -107,7 +107,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                 <TableCell className="font-medium">
                   KD{getCalculatedTotal(order).toFixed(2)}
                   {order.discount > 0 && (
-                    <div className="text-sm text-green-600">-KD{order.discount.toFixed(2)} discount</div>
+                    <div className="text-sm text-green-600">-KD {order.discount.toFixed(2)} discount</div>
                   )}
                 </TableCell>
                 <TableCell>
