@@ -4,15 +4,24 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Topleftmenu } from "@/components/top-left-menu";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Customer {
   name: string;
   email: string;
   phone: string;
   orderCount: number;
+}
+
+interface Order {
+  _id: string;
+  total: number;
+  status: string;
+  createdAt: string;
 }
 
 export default function CustomersPage() {
@@ -23,6 +32,12 @@ export default function CustomersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const limit = 10;
+  const [showUnique, setShowUnique] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalEmail, setModalEmail] = useState<string | null>(null);
+  const [modalOrders, setModalOrders] = useState<Order[]>([]);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchCustomers() {
@@ -49,6 +64,38 @@ export default function CustomersPage() {
     toast.success(`${label} copied: ${value}`);
   };
 
+  // Helper to filter unique customers by email and sum order counts
+  const uniqueCustomers = showUnique
+    ? Array.from(
+        customers.reduce((map, c) => {
+          if (map.has(c.email)) {
+            map.get(c.email).orderCount += c.orderCount;
+          } else {
+            map.set(c.email, { ...c });
+          }
+          return map;
+        }, new Map())
+      .values())
+    : customers;
+
+  const handleViewOrders = (email: string) => {
+    setModalEmail(email);
+    setModalOpen(true);
+    setModalOrders([]);
+    setModalLoading(true);
+    setModalError(null);
+    fetch(`/api/customers/orders?email=${encodeURIComponent(email)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setModalOrders(data.orders || []);
+        setModalLoading(false);
+      })
+      .catch((err) => {
+        setModalError("Failed to fetch orders");
+        setModalLoading(false);
+      });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
@@ -62,7 +109,11 @@ export default function CustomersPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Unique Customers: {totalCount}</CardTitle>
+            <CardTitle>Total Unique Customers: {showUnique ? uniqueCustomers.length : totalCount}</CardTitle>
+            <div className="flex items-center gap-2 mt-2">
+              <Switch checked={showUnique} onCheckedChange={setShowUnique} id="unique-toggle" />
+              <label htmlFor="unique-toggle" className="text-xs md:text-sm text-gray-600 cursor-pointer">Show only unique customers (by email)</label>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -85,7 +136,7 @@ export default function CustomersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {customers.map((customer, idx) => (
+                    {uniqueCustomers.map((customer, idx) => (
                       <TableRow key={customer.email + idx}>
                         <TableCell
                           className="cursor-pointer hover:bg-blue-50 transition-colors"
@@ -106,10 +157,21 @@ export default function CustomersPage() {
                           {customer.phone}
                         </TableCell>
                         <TableCell
-                          className="cursor-pointer hover:bg-blue-50 transition-colors"
-                          onClick={() => handleCopy(String(customer.orderCount), 'Order Count')}
+                          className="cursor-pointer hover:bg-blue-50 transition-colors flex items-center gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewOrders(customer.email);
+                          }}
+                          // onClick={() => handleCopy(String(customer.orderCount), 'Order Count')}
                         >
                           {customer.orderCount}
+                          <button
+                            type="button"
+                            className="ml-2 text-gray-500 hover:text-blue-600"
+                            aria-label="View Orders"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -141,6 +203,50 @@ export default function CustomersPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Orders Modal */}
+        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Orders for {modalEmail}</DialogTitle>
+            </DialogHeader>
+            {modalLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            ) : modalError ? (
+              <div className="text-red-500 text-center">{modalError}</div>
+            ) : modalOrders.length === 0 ? (
+              <div className="text-gray-500 text-center">No orders found for this customer.</div>
+            ) : (
+              <div className="max-h-64 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {modalOrders.map((order) => (
+                      <TableRow key={order._id}>
+                        <TableCell 
+                        className="cursor-pointer hover:bg-blue-50 transition-colors"
+                        onClick={() => handleCopy(order._id, 'Order ID')}
+                        >{order._id}</TableCell>
+                        <TableCell>{order.total}</TableCell>
+                        <TableCell>{order.status}</TableCell>
+                        <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
