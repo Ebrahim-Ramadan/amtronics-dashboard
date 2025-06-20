@@ -27,12 +27,12 @@ const MONTHS = [
   "April",
   "May",
   "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  // "July",
+  // "August",
+  // "September",
+  // "October",
+  // "November",
+  // "December",
 ];
 
 function getCurrentYear() {
@@ -47,9 +47,8 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const years = Array.from({ length: 5 }, (_, i) => getCurrentYear() - i);
+  const years = Array.from({ length: 1 }, (_, i) => getCurrentYear() - i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
-console.log('days', days);
 
   useEffect(() => {
     async function fetchAnalytics() {
