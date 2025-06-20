@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { Trash2 } from 'lucide-react'
+import { Trash2, Eye } from 'lucide-react'
 
 interface PromoCodesTableProps {
   promoCodes: PromoCode[]
@@ -14,6 +14,8 @@ interface PromoCodesTableProps {
 
 export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) {
   const [localPromoCodes, setLocalPromoCodes] = useState<PromoCode[]>([]);
+  const [usesCount, setUsesCount] = useState<{ [code: string]: number | null }>({});
+  const [loadingUses, setLoadingUses] = useState<{ [code: string]: boolean }>({});
 
   useEffect(() => {
     setLocalPromoCodes(promoCodes);
@@ -103,6 +105,21 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
     }
   };
 
+  const handleViewUses = async (code: string) => {
+    setLoadingUses((prev) => ({ ...prev, [code]: true }));
+    try {
+      // TODO: Replace with real API endpoint
+      const res = await fetch(`/api/promocodes/uses?code=${encodeURIComponent(code)}`);
+      const data = await res.json();
+      setUsesCount((prev) => ({ ...prev, [code]: data.count ?? 0 }));
+      toast.info(`Promo code ${code} used ${data.count ?? 0} times.`);
+    } catch (err) {
+      toast.error('Failed to fetch usage count');
+    } finally {
+      setLoadingUses((prev) => ({ ...prev, [code]: false }));
+    }
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -112,6 +129,7 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
           <TableHead>Expiry Date</TableHead>
           <TableHead>Active</TableHead>
           <TableHead>Status Toggle</TableHead>
+          <TableHead>Usages</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -131,6 +149,22 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                 checked={promoCode.active}
                 onCheckedChange={() => handleToggleActive(promoCode._id, promoCode.active)}
               />
+            </TableCell>
+            <TableCell>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleViewUses(promoCode.code)}
+                disabled={loadingUses[promoCode.code]}
+                aria-label={`View uses for promo code ${promoCode.code}`}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                {loadingUses[promoCode.code]
+                  ? '...'
+                  : usesCount[promoCode.code] != null
+                    ? usesCount[promoCode.code]
+                    : 'View'}
+              </Button>
             </TableCell>
             <TableCell>
               <Button
