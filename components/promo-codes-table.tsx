@@ -112,7 +112,7 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
       const res = await fetch(`/api/promocodes/uses?code=${encodeURIComponent(code)}`);
       const data = await res.json();
       setUsesCount((prev) => ({ ...prev, [code]: data.count ?? 0 }));
-      toast.info(`Promo code ${code} used ${data.count ?? 0} times.`);
+      toast.info(`code ${code} is used ${data.count ?? 0} times.`);
     } catch (err) {
       toast.error('Failed to fetch usage count');
     } finally {
