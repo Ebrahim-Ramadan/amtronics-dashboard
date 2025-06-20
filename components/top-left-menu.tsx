@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package,  Menu, TableColumnsSplit, CheckCircle } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package,  Menu, TableColumnsSplit, CheckCircle, AlignVerticalJustifyStart } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -82,6 +82,19 @@ export const Topleftmenu = () => {
           >
             <Package className="h-4 w-4" />
             Products
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            href="/analytics"
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+              pathname === '/analytics' && 'bg-gray-100 text-blue-600'
+            )}
+            aria-current={pathname === '/analytics' ? 'page' : undefined}
+          >
+            <AlignVerticalJustifyStart className="h-4 w-4" />
+            Analytics
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
