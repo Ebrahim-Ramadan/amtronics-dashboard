@@ -199,7 +199,7 @@ if (orders.length === 0) {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Orders Shown / Current Page</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
@@ -209,7 +209,7 @@ if (orders.length === 0) {
               {orders.length} / ({currentPage} of {totalPages})
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Orders Table */}
