@@ -51,11 +51,17 @@ export async function GET(request: NextRequest) {
       _id: 1,
     }
     // Execute queries in parallel
-    const [orders, totalCount] = await Promise.all([
+    const [orders, totalCount, totalValueResult] = await Promise.all([
       collection.find(query).project(projection).sort(sortObj).skip(skip).limit(limit).toArray(),
       collection.countDocuments(query),
+      collection.aggregate([
+        { $match: query },
+        { $group: { _id: null, totalValue: { $sum: "$total" } } }
+      ]).toArray()
     ])
 console.log('fetching...');
+
+    const totalValue = totalValueResult.length > 0 ? totalValueResult[0].totalValue : 0
 
     // Transform MongoDB documents
     const transformedOrders = orders.map((order) => ({
@@ -69,6 +75,7 @@ console.log('fetching...');
     return NextResponse.json({
       orders: transformedOrders,
       totalCount,
+      totalValue,
       currentPage: page,
       totalPages,
     })

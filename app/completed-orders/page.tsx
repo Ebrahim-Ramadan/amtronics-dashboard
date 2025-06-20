@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Clock, Package,  Loader2 } from "lucide-react"
+import { Clock, Package,  Loader2, Banknote } from "lucide-react"
 import { OrdersTable } from "@/components/orders-table"
 import { SearchAndSort } from "@/components/search-and-sort"
 import { Pagination } from "@/components/pagination"
@@ -54,6 +54,7 @@ export interface Order {
 interface OrdersResult {
   orders: Order[]
   totalCount: number
+  totalValue: number;
   currentPage: number
   totalPages: number
 }
@@ -75,7 +76,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
-        {[1, 2].map((i) => (
+        {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader className="animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -107,15 +108,15 @@ function SortingLoadingSkeleton() {
     <div className="space-y-4">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
-        {[1, 2].map((i) => (
+        {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {i === 1 ? "Total Orders" : "Orders Shown / Current Page" }
+                {i === 1 ? "Total Orders" : i === 2 ? "Orders Shown / Current Page" : "Total Value" }
               </CardTitle>
               {i === 1 ? (
                 <Clock className="h-4 w-4 text-muted-foreground" />
-              ) :  <Package className="h-4 w-4 text-muted-foreground" />}
+              ) :  i === 2 ? <Package className="h-4 w-4 text-muted-foreground" /> : <Banknote className="h-4 w-4 text-muted-foreground" />}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">...</div>
@@ -170,7 +171,7 @@ async function OrdersDashboardContent({ searchParams, initialStatus }: OrdersDas
       throw new Error("Failed to fetch orders")
     }
 
-    const { orders, totalCount, currentPage, totalPages }: OrdersResult = await response.json()
+    const { orders, totalCount, currentPage, totalPages, totalValue }: OrdersResult = await response.json()
 console.log('Fetched orders:', orders);
 
 if (orders.length === 0) {
@@ -217,6 +218,16 @@ if (orders.length === 0) {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Value of Completed Orders</CardTitle>
+            <Banknote className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">KD {totalValue.toFixed(2)}</div>
+          </CardContent>
+        </Card>
         </div>
 
         {/* Orders Table */}
