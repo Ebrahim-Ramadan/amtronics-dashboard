@@ -7,6 +7,7 @@ import { Pagination } from "@/components/pagination"
 import Image from "next/image"
 
 import { Topleftmenu } from "@/components/top-left-menu"
+import { CompletedOrdersView } from "@/components/completed-orders-view"
 
 export interface Product {
   _id: string
@@ -75,7 +76,7 @@ interface OrdersDashboardContentProps extends PageProps {
 function LoadingSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-6">
         {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader className="animate-pulse">
@@ -107,16 +108,20 @@ function SortingLoadingSkeleton() {
   return (
     <div className="space-y-4">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-6">
         {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {i === 1 ? "Total Orders" : i === 2 ? "Orders Shown / Current Page" : "Total Value" }
+                {i === 1 ? "Total Orders" : i === 2 ? "Orders Shown / Current Page" : "Total Value"}
               </CardTitle>
               {i === 1 ? (
                 <Clock className="h-4 w-4 text-muted-foreground" />
-              ) :  i === 2 ? <Package className="h-4 w-4 text-muted-foreground" /> : <Banknote className="h-4 w-4 text-muted-foreground" />}
+              ) : i === 2 ? (
+                <Package className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Banknote className="h-4 w-4 text-muted-foreground" />
+              )}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">...</div>
@@ -172,75 +177,28 @@ async function OrdersDashboardContent({ searchParams, initialStatus }: OrdersDas
     }
 
     const { orders, totalCount, currentPage, totalPages, totalValue }: OrdersResult = await response.json()
-console.log('Fetched orders:', orders);
+    console.log("Fetched orders:", orders)
 
-if (orders.length === 0) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-lg font-medium text-gray-900">No orders found</p>
-          <p className="text-sm text-gray-500">
-            Try adjusting your search or sort criteria.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-    return (
-      <>
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Completed Orders</CardTitle>
-              <Image
-              src='/statistics.svg'
-              alt='Statistics'
-              width={24}
-              height={24}
-              />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalCount}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Orders Shown / Current Page</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-              {orders.length} / ({currentPage} of {totalPages})
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value of Completed Orders</CardTitle>
-            <Banknote className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KD {totalValue.toFixed(2)}</div>
+    if (orders.length === 0) {
+      return (
+        <Card>
+          <CardContent className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-lg font-medium text-gray-900">No orders found</p>
+              <p className="text-sm text-gray-500">Try adjusting your search or sort criteria.</p>
+            </div>
           </CardContent>
         </Card>
-        </div>
-
-        {/* Orders Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Completed Orders</CardTitle>
-          </CardHeader>
-          <OrdersTable orders={orders} />
-        </Card>
-
-        {/* Pagination */}
-        <Pagination currentPage={currentPage} totalPages={totalPages} totalCount={totalCount} />
-      </>
+      )
+    }
+    return (
+      <CompletedOrdersView
+        orders={orders}
+        totalCount={totalCount}
+        totalValue={totalValue}
+        currentPage={currentPage}
+        totalPages={totalPages}
+      />
     )
   } catch (error) {
     return (
