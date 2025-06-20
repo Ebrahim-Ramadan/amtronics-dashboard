@@ -62,8 +62,7 @@ export default function CustomersPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Customer List</CardTitle>
-            <div className="text-sm text-gray400 mt-1 font-medium">Total Unique Customers: {totalCount}</div>
+            <CardTitle>Total Unique Customers: {totalCount}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
