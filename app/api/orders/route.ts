@@ -23,8 +23,9 @@ export async function GET(request: NextRequest) {
       query.$or = [
         { "customerInfo.name": { $regex: search, $options: "i" } },
         { "customerInfo.email": { $regex: search, $options: "i" } },
-        { "_id": { $regex: search, $options: "i" } }, // Add search by _id
-      ]
+        { "_id": /^[0-9a-fA-F]{24}$/.test(search) ? new ObjectId(search) : null },
+        { "id": Number(search) }, // Match exact Int32
+      ].filter(Boolean);
     }
 
     // Calculate pagination
