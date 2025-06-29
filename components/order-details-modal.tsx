@@ -243,7 +243,8 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
         </div>
       </div>
       <div className="flex-shrink-0 text-right">
-        <div className="text-sm font-medium">KD {item.product.price.toFixed(2)}</div>
+        <div className="text-xs font-medium">KD {item.product.price.toFixed(2)}</div>
+        <div className="text-xs text-gray-500">Ave. Cost: KD {item.product.ave_cost?.toFixed(2) ?? '0.00'}</div>
         <div className="text-sm font-bold mt-1">KD {(item.product.price * item.quantity).toFixed(2)}</div>
       </div>
     </div>

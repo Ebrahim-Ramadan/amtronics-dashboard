@@ -18,6 +18,7 @@ export interface Product {
   en_description: string
   ar_description: string
   price: number
+  ave_cost?: number
   image: string
   quantity_on_hand: number
   sold_quantity: number

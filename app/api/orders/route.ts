@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
       "items.product.barcode": 1,
       "items.product.image": 1,
       "items.quantity": 1,
+      "items.product.ave_cost": 1,
       customerInfo: 1,
       total: 1,
       discount: 1,
