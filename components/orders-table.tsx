@@ -78,7 +78,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               <TableHead>Customer</TableHead>
               <TableHead>Items</TableHead>
               <TableHead>Total</TableHead>
-              <TableHead>Shipping Fee</TableHead>
+              <TableHead>Shipping</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Actions</TableHead>

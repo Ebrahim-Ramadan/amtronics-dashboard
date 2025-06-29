@@ -40,7 +40,7 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Completed Orders</CardTitle>
@@ -85,7 +85,7 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
             <CardContent>
               <div className="text-2xl font-bold text-green-600">KD {netProfit.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground">
-                (Total Sales - (Ave. Cost + Shipping + Fees))<br/>
+                (Total Sales - (Total Ave. Cost + Total Shipping + Your Fees))<br/>
                 KD {totalSales.toFixed(2)} - (KD {totalAveCost.toFixed(2)} + KD {totalShipping.toFixed(2)} + KD {totalFees.toFixed(2)})
               </p>
             </CardContent>

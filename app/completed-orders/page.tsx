@@ -78,7 +78,7 @@ interface OrdersDashboardContentProps extends PageProps {
 function LoadingSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
         {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader className="animate-pulse">
@@ -110,7 +110,7 @@ function SortingLoadingSkeleton() {
   return (
     <div className="space-y-4">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
         {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

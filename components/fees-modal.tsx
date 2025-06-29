@@ -136,7 +136,7 @@ export function FeesModal({ open, onOpenChange, onSubmit }: FeesModalProps) {
                   size="icon"
                   onClick={() => handleRemoveFee(fee.id)}
                   className="col-span-1"
-                  disabled={fees.length === 1}
+                  // disabled={fees.length === 1}
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
