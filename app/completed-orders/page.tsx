@@ -50,6 +50,7 @@ export interface Order {
   promoCode: string
   status: string
   createdAt: string
+  shippingFee: number
 }
 
 interface OrdersResult {

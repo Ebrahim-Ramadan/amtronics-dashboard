@@ -126,6 +126,10 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
                 <span className="text-sm text-gray-600">Subtotal</span>
                 <p className="text-right"><span className="font-medium">KD{getItemsTotal().toFixed(2)}</span></p>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Shipping Fee</span>
+                <p className="text-right"><span className="font-medium">KD{order.shippingFee?.toFixed(2) ?? '0.00'}</span></p>
+              </div>
               {order.discount > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Discount</span>

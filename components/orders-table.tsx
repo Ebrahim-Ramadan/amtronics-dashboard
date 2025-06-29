@@ -78,6 +78,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               <TableHead>Customer</TableHead>
               <TableHead>Items</TableHead>
               <TableHead>Total</TableHead>
+              <TableHead>Shipping Fee</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Actions</TableHead>
@@ -109,6 +110,9 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   {order.discount > 0 && (
                     <div className="text-sm text-green-600">-KD {order.discount.toFixed(2)} discount</div>
                   )}
+                </TableCell>
+                <TableCell className="font-medium">
+                  KD{order.shippingFee?.toFixed(2) ?? '0.00'}
                 </TableCell>
                 <TableCell>
   <Badge

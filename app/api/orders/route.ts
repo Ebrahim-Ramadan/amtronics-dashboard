@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
       status: 1,
       createdAt: 1,
       _id: 1,
+      shippingFee: 1,
     }
     // Execute queries in parallel
     const [orders, totalCount, totalValueResult] = await Promise.all([
@@ -69,6 +70,7 @@ console.log('fetching...');
       ...order,
       _id: order._id.toString(),
       createdAt: order.createdAt.$date || order.createdAt,
+      shippingFee: order.shippingFee ?? 0,
     }))
 
     const totalPages = Math.ceil(totalCount / limit)
