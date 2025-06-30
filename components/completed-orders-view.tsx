@@ -30,13 +30,12 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
     setIsCalculated(true)
   }
 
-  // Calculate net profit: (sum of product price * quantity) - (sum of ave_cost * quantity + shippingFee + totalFees)
+  // Calculate net profit: (sum of product price * quantity) - (sum of ave_cost * quantity + totalFees)
   const totalSales = orders.reduce((sum, order) =>
     sum + order.items.reduce((itemSum, item) => itemSum + item.product.price * item.quantity, 0), 0)
   const totalAveCost = orders.reduce((sum, order) =>
     sum + order.items.reduce((itemSum, item) => itemSum + (item.product.ave_cost || 0) * item.quantity, 0), 0)
-  const totalShipping = orders.reduce((sum, order) => sum + (order.shippingFee || 0), 0)
-  const netProfit = totalSales - (totalAveCost + totalShipping + totalFees)
+  const netProfit = totalSales - (totalAveCost + totalFees)
 
   return (
     <>
@@ -85,8 +84,8 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
             <CardContent>
               <div className="text-2xl font-bold text-green-600">KD {netProfit.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground">
-                (Total Sales - (Total Ave. Cost + Total Shipping + Your Fees))<br/>
-                KD {totalSales.toFixed(2)} - (KD {totalAveCost.toFixed(2)} + KD {totalShipping.toFixed(2)} + KD {totalFees.toFixed(2)})
+                (Total Sales - (Total Ave. Cost + Your Fees))<br/>
+                KD {totalSales.toFixed(2)} - (KD {totalAveCost.toFixed(2)} + KD {totalFees.toFixed(2)})
               </p>
             </CardContent>
           </Card>
