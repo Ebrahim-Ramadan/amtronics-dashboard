@@ -49,7 +49,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
   const totalSales = order.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
   const totalAveCost = order.items.reduce((sum, item) => sum + (item.product.ave_cost || 0) * item.quantity, 0)
   const totalShipping = order.shippingFee || 0
-  const netProfit = totalSales - (totalAveCost + totalShipping)
+  const netProfit = totalSales - totalAveCost
 
   const handleMarkAsCompleted = async () => {
     setIsLoading(true)
@@ -163,7 +163,7 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
               </div>
               <div className="flex justify-between items-center text-xs text-muted-foreground">
                 <span></span>
-                <span>(Sales - (Ave. Cost + Shipping))<br/>KD {totalSales.toFixed(2)} - (KD {totalAveCost.toFixed(2)} + KD {totalShipping.toFixed(2)})</span>
+                <span>(Sales - Ave. Cost)<br/>KD {totalSales.toFixed(2)} - KD {totalAveCost.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-sm text-gray-600">
                 <span className="flex items-center gap-1">
