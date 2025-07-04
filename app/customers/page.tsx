@@ -4,16 +4,19 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Topleftmenu } from "@/components/top-left-menu";
-import { Loader2, Eye } from "lucide-react";
+import { Loader2, Eye, ExpandIcon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import * as XLSX from "xlsx";
 
 interface Customer {
   name: string;
   email: string;
   phone: string;
+  city?: string;
+  area?: string;
   orderCount: number;
 }
 
@@ -104,6 +107,29 @@ export default function CustomersPage() {
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Customers</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const dataToExport = uniqueCustomers.map((c) => ({
+                  Name: c.name,
+                  Email: c.email,
+                  Phone: c.phone,
+                  City: c.city || "",
+                  Area: c.area || "",
+                  "Order Count": c.orderCount,
+                }));
+                const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
+                XLSX.writeFile(workbook, "customers.xlsx");
+              }}
+              className="ml-2"
+              disabled={loading}
+            >
+              <Download/>
+              Export
+            </Button>
           </div>
         </div>
 
@@ -132,6 +158,8 @@ export default function CustomersPage() {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
+                      <TableHead>City</TableHead>
+                      <TableHead>Area</TableHead>
                       <TableHead>Order Count</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -156,13 +184,14 @@ export default function CustomersPage() {
                         >
                           {customer.phone}
                         </TableCell>
+                        <TableCell>{customer.city || "-"}</TableCell>
+                        <TableCell>{customer.area || "-"}</TableCell>
                         <TableCell
                           className="cursor-pointer hover:bg-blue-50 transition-colors flex items-center gap-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleViewOrders(customer.email);
                           }}
-                          // onClick={() => handleCopy(String(customer.orderCount), 'Order Count')}
                         >
                           {customer.orderCount}
                           <button

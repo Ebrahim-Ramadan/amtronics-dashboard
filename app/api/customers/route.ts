@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
             email: "$customerInfo.email",
             name: "$customerInfo.name",
             phone: "$customerInfo.phone",
+            city: "$customerInfo.city",
+            area: "$customerInfo.area",
           },
           orderCount: { $sum: 1 },
         },
@@ -39,6 +41,8 @@ export async function GET(request: NextRequest) {
       name: c._id.name,
       email: c._id.email,
       phone: c._id.phone,
+      city: c._id.city,
+      area: c._id.area,
       orderCount: c.orderCount,
     }));
 
