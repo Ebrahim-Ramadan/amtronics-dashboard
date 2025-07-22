@@ -149,13 +149,44 @@ setLoading(true);
     }
   };
 
+
+  const handleDelete = async () => {
+  const confirmDelete = confirm("Are you sure you want to delete this project?");
+  if (!confirmDelete) return;
+
+  setLoading(true);
+  setError(null);
+  try {
+    const res = await fetch("/api/projects", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: project._id }),
+    });
+
+    if (!res.ok) {
+      const json = await res.json();
+      throw new Error(json.error || "Failed to delete project");
+    }
+
+    setOpen(false);
+    startTransition(() => router.refresh());
+  } catch (err: any) {
+    setError(err.message || "Unknown error during deletion");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" aria-label={`Edit project ${project.name}`}>
           <Edit className="h-5 w-5" />
         </Button>
+
       </DialogTrigger>
+      
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Edit Project</DialogTitle>
@@ -258,12 +289,13 @@ setLoading(true);
             <Plus className="mr-1 h-4 w-4" />
             Add Engineer
           </Button>
-
-          <div className="flex gap-4 mt-6">
+<div className="gap-2 mt-6 flex justify-between items-end flex-col w-full md:flex-row">
+  
+          <div className="flex gap-4 w-full">
             <Button
               type="submit"
               disabled={loading || isPending}
-              className="w-full sm:w-auto"
+              className=""
             >
               {loading || isPending ? "Saving..." : "Save Changes"}
             </Button>
@@ -271,11 +303,21 @@ setLoading(true);
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="w-full sm:w-auto"
+              // className="w-full "
             >
               Cancel
             </Button>
+           
           </div>
+           <Button
+  type="button"
+  variant="destructive"
+  onClick={handleDelete}
+  // className="w-full sm:w-auto"
+>
+  Delete Project
+</Button>
+</div>
         </form>
       </DialogContent>
     </Dialog>

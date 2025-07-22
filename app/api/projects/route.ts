@@ -85,3 +85,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to add project" }, { status: 500 });
   }
 } 
+
+
+
+
+// DELETE: Remove a project by ID
+export async function DELETE(request: NextRequest) {
+  try {
+    const { id } = await request.json();
+    if (!id) {
+      return NextResponse.json({ error: "Missing project ID" }, { status: 400 });
+    }
+
+    const client = await clientPromise;
+    const db = client.db("amtronics");
+    const result = await db.collection("projects").deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Project deleted" });
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
+  }
+}
