@@ -36,23 +36,41 @@ export async function GET(request: NextRequest) {
 
     // Define projection to only include specific product fields
     const projection = {
-      "items.product._id": 1,
-      "items.product.en_name": 1,
-      "items.product.price": 1,
-      "items.product.sku": 1,
-      "items.product.barcode": 1,
-      "items.product.image": 1,
-      "items.quantity": 1,
-      "items.product.ave_cost": 1,
-      customerInfo: 1,
-      total: 1,
-      discount: 1,
-      promoCode: 1,
-      status: 1,
-      createdAt: 1,
-      _id: 1,
-      shippingFee: 1,
-    }
+  // Common product fields for individual products inside items
+  "items.product._id": 1,
+  "items.product.en_name": 1,
+  "items.product.price": 1,
+  "items.product.sku": 1,
+  "items.product.barcode": 1,
+  "items.product.image": 1,
+  "items.product.ave_cost": 1,
+
+  // Fields for project-bundle items
+  "items.type": 1,
+  "items.projectId": 1,
+  "items.projectName": 1,
+  "items.engineerNames": 1,
+  "items.bundleIds": 1,
+  "items.products._id": 1,
+  "items.products.en_name": 1,
+  "items.products.price": 1,
+  "items.products.ave_cost": 1,
+  "items.products.image": 1,
+
+  // Common item field
+  "items.quantity": 1,
+
+  // Order level fields
+  customerInfo: 1,
+  total: 1,
+  discount: 1,
+  promoCode: 1,
+  status: 1,
+  createdAt: 1,
+  _id: 1,
+  shippingFee: 1,
+};
+
     // Execute queries in parallel
     const [orders, totalCount, totalValueResult] = await Promise.all([
       collection.find(query).project(projection).sort(sortObj).skip(skip).limit(limit).toArray(),

@@ -1,19 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Package, Eye } from "lucide-react"
-import type { Order, OrderItem } from "@/app/page"
+import type { Order, OrderItem, ProjectBundleItem } from "@/app/page"
 import { toast } from "sonner"
 import dynamic from "next/dynamic"
 
-// Dynamically import OrderDetailsModal
-const OrderDetailsModal = dynamic(() => import("./order-details-modal").then((mod) => mod.OrderDetailsModal), {
-  ssr: false, // Ensure this component is not server-rendered
-  loading: () => null, // Or a loading spinner if desired
-})
+const OrderDetailsModal = dynamic(
+  () => import("./order-details-modal").then((mod) => mod.OrderDetailsModal),
+  { ssr: false, loading: () => null }
+)
 
 interface OrdersTableProps {
   orders: Order[]
@@ -29,21 +30,32 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       month: "short",
       day: "numeric",
       hour: "2-digit",
-      minute: "2-digit",
+      minute: "2-digit"
     })
   }
 
-  const getItemsCount = (items: OrderItem[]) => {
-    return items.reduce((total, item) => total + item.quantity, 0)
+  const getItemsCount = (items: (OrderItem | ProjectBundleItem)[]) => {
+    return items.reduce((total, item) => {
+      if ("product" in item) return total + item.quantity
+      if ("products" in item && Array.isArray(item.products)) return total + item.quantity * item.products.length
+      return total
+    }, 0)
   }
 
-  const getItemsSubtotal = (items: OrderItem[]) => {
-    return items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  const getItemsSubtotal = (items: (OrderItem | ProjectBundleItem)[]) => {
+    return items.reduce((total, item) => {
+      if ("product" in item) {
+        return total + item.product.price * item.quantity
+      } else if ("products" in item && Array.isArray(item.products)) {
+        return total + item.quantity * (item.products ?? []).reduce((sum, p) => sum + (p.price || 0), 0)
+      }
+      return total
+    }, 0)
   }
 
   const getCalculatedTotal = (order: Order) => {
-    const subtotal = getItemsSubtotal(order.items);
-    return subtotal - (order.discount || 0);
+    const subtotal = getItemsSubtotal(order.items)
+    return subtotal - (order.discount || 0)
   }
 
   const handleViewOrder = (order: Order) => {
@@ -87,11 +99,11 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order._id}>
-                <TableCell 
-                  className="font-mono text-sm cursor-pointer hover:text-blue-600" 
+                <TableCell
+                  className="font-mono text-sm cursor-pointer hover:text-blue-600"
                   onClick={() => handleCopyId(order._id)}
                 >
-                  {order._id.slice(-8)} 
+                  {order._id.slice(-8)}
                 </TableCell>
                 <TableCell>
                   <div>
@@ -112,20 +124,20 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   )}
                 </TableCell>
                 <TableCell className="font-medium">
-                  KD{order.shippingFee?.toFixed(2) ?? '0.00'}
+                  KD{order.shippingFee?.toFixed(2) ?? "0.00"}
                 </TableCell>
                 <TableCell>
-  <Badge
-    variant="secondary"
-    className={
-      order.status === "completed"
-        ? "bg-green-100 text-green-800"
-        : "bg-yellow-100 text-yellow-800"
-    }
-  >
-    {order.status}
-  </Badge>
-</TableCell>
+                  <Badge
+                    variant="secondary"
+                    className={
+                      order.status === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }
+                  >
+                    {order.status}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-sm text-gray-500">{formatDate(order.createdAt)}</TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>

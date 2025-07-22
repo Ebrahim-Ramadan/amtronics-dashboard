@@ -6,12 +6,12 @@ import { Banknote, Package } from "lucide-react"
 import { OrdersTable } from "@/components/orders-table"
 import { Pagination } from "@/components/pagination"
 import { Button } from "@/components/ui/button"
-// import { FeesModal } from "@/components/fees-modal"
-import { Order } from "@/app/completed-orders/page"
 import Image from "next/image"
 import dynamic from "next/dynamic"
+import { Order } from "@/app/completed-orders/page"
 
 const FeesModal = dynamic(() => import("@/components/fees-modal"), { ssr: false })
+
 interface CompletedOrdersViewProps {
   orders: Order[]
   totalCount: number
@@ -30,11 +30,29 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
     setIsCalculated(true)
   }
 
-  // Calculate net profit: (sum of product price * quantity) - (sum of ave_cost * quantity + totalFees)
+  // Calculate total sales and average cost considering project-based orders and regular orders
   const totalSales = orders.reduce((sum, order) =>
-    sum + order.items.reduce((itemSum, item) => itemSum + item.product.price * item.quantity, 0), 0)
+    sum + order.items.reduce((itemSum, item) => {
+      if (item.type === "project-bundle" && item.products) {
+        // Sum prices of all products inside the project bundle times the bundle quantity
+        return itemSum + item.products.reduce((prodSum, prod) => prodSum + prod.price * item.quantity, 0)
+      } else {
+        // Normal product
+        return itemSum + (item.product?.price || 0) * item.quantity
+      }
+    }, 0), 0)
+
   const totalAveCost = orders.reduce((sum, order) =>
-    sum + order.items.reduce((itemSum, item) => itemSum + (item.product.ave_cost || 0) * item.quantity, 0), 0)
+    sum + order.items.reduce((itemSum, item) => {
+      if (item.type === "project-bundle" && item.products) {
+        // Sum average cost of all products inside the project bundle times the bundle quantity
+        return itemSum + item.products.reduce((prodSum, prod) => prodSum + (prod.ave_cost || 0) * item.quantity, 0)
+      } else {
+        // Normal product
+        return itemSum + ((item.product?.ave_cost || 0) * item.quantity)
+      }
+    }, 0), 0)
+
   const netProfit = totalSales - (totalAveCost + totalFees)
 
   return (
@@ -49,18 +67,6 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
             <div className="text-2xl font-bold">{totalCount}</div>
           </CardContent>
         </Card>
-
-        {/* <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders Shown / Current Page</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {orders.length} / ({currentPage} of {totalPages})
-            </div>
-          </CardContent>
-        </Card> */}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -84,7 +90,7 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
             <CardContent>
               <div className="text-2xl font-bold text-green-600">KD {netProfit.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground">
-                (Total Sales - (Total Ave. Cost + Your Fees))<br/>
+                (Total Sales - (Total Ave. Cost + Your Fees))<br />
                 KD {totalSales.toFixed(2)} - (KD {totalAveCost.toFixed(2)} + KD {totalFees.toFixed(2)})
               </p>
             </CardContent>
@@ -104,4 +110,4 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
       <Pagination currentPage={currentPage} totalPages={totalPages} totalCount={totalCount} />
     </>
   )
-} 
+}

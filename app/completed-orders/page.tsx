@@ -1,10 +1,8 @@
 import { Suspense } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Clock, Package,  Loader2, Banknote } from "lucide-react"
-import { OrdersTable } from "@/components/orders-table"
 import { SearchAndSort } from "@/components/search-and-sort"
 import { Pagination } from "@/components/pagination"
-import Image from "next/image"
 
 import { Topleftmenu } from "@/components/top-left-menu"
 import { CompletedOrdersView } from "@/components/completed-orders-view"
