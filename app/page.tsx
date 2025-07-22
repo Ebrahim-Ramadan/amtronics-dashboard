@@ -7,6 +7,7 @@ import { Pagination } from "@/components/pagination"
 import Image from "next/image"
 
 import { Topleftmenu } from "@/components/top-left-menu"
+import Link from "next/link";
 
 export interface Product {
   _id: string
@@ -82,6 +83,22 @@ function LoadingSkeleton() {
             </CardContent>
           </Card>
         ))}
+        {/* Projects Card */}
+        <Link href="/projects" passHref legacyBehavior>
+          <a style={{ textDecoration: 'none' }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>Projects</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Package className="w-6 h-6 text-blue-500" />
+                  <span>Manage project bundles and engineers</span>
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+        </Link>
       </div>
       <Card>
         <CardHeader>
