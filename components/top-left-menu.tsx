@@ -111,6 +111,19 @@ export const Topleftmenu = () => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
+          <Link
+            href="/projects"
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+              pathname === '/projects' && 'bg-gray-100 text-blue-600'
+            )}
+            aria-current={pathname === '/projects' ? 'page' : undefined}
+          >
+            <PersonStanding className="h-4 w-4" />
+            Projects
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <LogoutButton
             // className="flex items-center gap-2 px-3 py-2 w-full text-left rounded-md hover:bg-gray-100 transition-colors"
             // icon={<LogOut className="h-4 w-4" />}
