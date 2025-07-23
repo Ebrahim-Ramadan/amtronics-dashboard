@@ -147,14 +147,13 @@
   border-radius: 0;
 }
 
-
-
 /* ========== Print Styles ========== */
 @media print {
   body * {
     visibility: hidden !important;
   }
 
+  /* Make the dialog content and its children visible */
   .print-area,
   .print-area * {
     visibility: visible !important;
@@ -169,9 +168,29 @@
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important; /* Ensure it takes full width */
+    max-width: none !important; /* Remove max-width constraints */
   }
 
-  .print-hidden {
+  /* Ensure the DialogContent itself is visible and correctly sized */
+  .DialogContent[data-state="open"] {
+    visibility: visible !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    opacity: 1 !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide elements that shouldn't be printed */
+  .print-hidden,
+  .DialogOverlay {
     display: none !important;
   }
 
