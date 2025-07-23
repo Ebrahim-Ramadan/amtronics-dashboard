@@ -33,7 +33,7 @@ export default async function ProjectsPage() {
   const projects = await fetchProjectsFromDB();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2 md:p-6 max-w-6xl mx-auto">
+    <div className="min-h-screen w-full  p-2 md:p-6 ">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
         <AddProjectForm />

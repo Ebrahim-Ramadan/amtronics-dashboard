@@ -223,6 +223,21 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
               <div className="text-2xl font-bold">{totalCount}</div>
             </CardContent>
           </Card>
+                  <Link href="/projects" passHref legacyBehavior>
+          <a style={{ textDecoration: 'none' }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>Projects</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2">
+                  <Package className="w-6 h-6 text-blue-500" />
+                  <span>Manage project bundles and engineers</span>
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+        </Link>
         </div>
 
         <Card>

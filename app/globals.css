@@ -146,3 +146,36 @@
   height: 0;
   border-radius: 0;
 }
+
+
+
+/* ========== Print Styles ========== */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+
+  .print-area {
+    position: static !important;
+    inset: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-area .card {
+    page-break-inside: avoid;
+  }
+}
