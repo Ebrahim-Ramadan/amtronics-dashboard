@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db("amtronics");
     const collection = db.collection("orders");
-
+    const productsCollection = db.collection("products");
     const pipeline = getAnalyticsPipeline({ year, month, day });
     const result = await collection.aggregate(pipeline).toArray();
 
@@ -94,7 +94,28 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ analytics }, { status: 200 });
+     // Find the most sold product by sold_quantity (descending order, limit 1)
+    const mostSoldProduct = await productsCollection
+      .find({ sold_quantity: { $exists: true, $gt: 0 } })
+      .sort({ sold_quantity: -1 })
+      .limit(1)
+      .toArray();
+      // Add after getting `mostSoldProduct`
+const leastSoldProduct = await productsCollection
+  .find({ sold_quantity: { $exists: true, $gte: 0 } })
+  .sort({ sold_quantity: 1 }) // ascending
+  .limit(1)
+  .toArray();
+
+ return NextResponse.json(
+      {
+        analytics,
+        mostSoldProduct: mostSoldProduct[0] || null, // send null if no product found
+        leastSoldProduct: leastSoldProduct[0] || null,
+      },
+      { status: 200 }
+    );
+    // return NextResponse.json({ analytics }, { status: 200 });
   } catch (error) {
     console.error("Error fetching analytics:", error);
     return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });

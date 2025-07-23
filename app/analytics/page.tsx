@@ -15,6 +15,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import LazyLoad from "@/lib/LazyLoad";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -46,6 +47,9 @@ export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+ const [mostSoldProduct, setMostSoldProduct] = useState<any | null>(null);
+ const [leastSoldProduct, setLeastSoldProduct] = useState<any | null>(null);
+
 
   const years = Array.from({ length: 1 }, (_, i) => getCurrentYear() - i);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -63,6 +67,8 @@ export default function AnalyticsPage() {
         if (!res.ok) throw new Error("Failed to fetch analytics");
         const data = await res.json();
         setAnalytics(data.analytics || []);
+        setMostSoldProduct(data.mostSoldProduct || null);
+        setLeastSoldProduct(data.leastSoldProduct || null);
       } catch (err: any) {
         setError(err.message || "Unknown error");
       } finally {
@@ -218,6 +224,8 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
+
+
         {/* Chart */}
         <Card>
           <CardHeader>
@@ -241,6 +249,56 @@ export default function AnalyticsPage() {
             )}
           </CardContent>
         </Card>
+         <LazyLoad>
+        
+   <div className="flex flex-col md:flex-row gap-4 items-start w-fit">
+ {/* Most Sold Product Card */}
+        {mostSoldProduct && (
+          <Card className="max-w-md mx-auto border-blue-600 border-2">
+            <CardHeader>
+              <CardTitle>Most Sold Product</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center gap-4">
+              <img
+                src={mostSoldProduct.image.split(",")[0]}
+                alt={mostSoldProduct.en_name}
+                className="w-20 h-20 object-cover rounded"
+              />
+              <div>
+                <h2 className="text-lg font-semibold">{mostSoldProduct.en_name}</h2>
+                <p className="text-sm text-gray-600">Price: KD {mostSoldProduct.price.toFixed(2)}</p>
+                <p className="text-sm text-gray-600">
+                  Sold Quantity: {mostSoldProduct.sold_quantity}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+          {leastSoldProduct && (
+  <Card className="max-w-md mx-auto border-red-600 border-2">
+    <CardHeader>
+      <CardTitle>Least Sold Product</CardTitle>
+    </CardHeader>
+    <CardContent className="flex items-center gap-4">
+      <img
+        src={leastSoldProduct.image.split(",")[0]}
+        alt={leastSoldProduct.en_name}
+        className="w-20 h-20 object-cover rounded"
+      />
+      <div>
+        <h2 className="text-lg font-semibold">{leastSoldProduct.en_name}</h2>
+        <p className="text-sm text-gray-600">Price: KD {leastSoldProduct.price.toFixed(2)}</p>
+        <p className="text-sm text-gray-600">
+          Sold Quantity: {leastSoldProduct.sold_quantity}
+        </p>
+      </div>
+    </CardContent>
+  </Card>
+)}
+
+   </div>
+        </LazyLoad>
+
       </div>
     </div>
   );
