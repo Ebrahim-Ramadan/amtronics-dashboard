@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Topleftmenu } from "@/components/top-left-menu";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { ChartData, ChartOptions } from "chart.js";
@@ -20,6 +19,8 @@ import LazyLoad from "@/lib/LazyLoad";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Bar = dynamic(() => import("react-chartjs-2").then((mod) => mod.Bar), { ssr: false });
+const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
+
 
 const MONTHS = [
   "January",

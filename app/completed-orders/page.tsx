@@ -4,8 +4,9 @@ import { Clock, Package,  Loader2, Banknote } from "lucide-react"
 import { SearchAndSort } from "@/components/search-and-sort"
 import { Pagination } from "@/components/pagination"
 
-import { Topleftmenu } from "@/components/top-left-menu"
 import { CompletedOrdersView } from "@/components/completed-orders-view"
+import dynamic from "next/dynamic"
+const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
 export interface Product {
   _id: string

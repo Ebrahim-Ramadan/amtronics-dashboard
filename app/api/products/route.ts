@@ -27,10 +27,11 @@ export interface Product {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams,  } = new URL(request.url)
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "10")
     const search = searchParams.get("search") || ""
+    const projectbundleproducts = searchParams.get("projectbundleproducts") || ""
 
     const client = await clientPromise
     const db = client.db("amtronics")
@@ -61,7 +62,19 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Define projection to only include specific product fields
-    const projection = {
+    let projection : any 
+    if( projectbundleproducts === "true" ) {
+    console.log("hell yeah", projectbundleproducts);
+     projection = {
+      _id: 1,
+      en_name: 1,
+      ar_name: 1,
+      sku: 1,
+      price: 1,
+    }
+    }
+    else{
+  projection = {
       _id: 1,
       id: 1,
       sku: 1,
@@ -88,6 +101,8 @@ export async function GET(request: NextRequest) {
       en_brand: 1,
       barcode: 1,
     }
+    }
+   
 
     const [products, totalCount] = await Promise.all([
       collection.find(query).project(projection).skip(skip).limit(limit).toArray(),

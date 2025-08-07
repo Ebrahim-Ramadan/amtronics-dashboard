@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,10 +20,19 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, XIcon, Plus } from "lucide-react";
+import { Edit, XIcon, Plus, Search, Loader2 } from "lucide-react";
 
 interface ProductRef {
   id: string;
+  name?: string;
+}
+
+interface Product {
+  _id: string;
+  id: number;
+  en_name: string;
+  ar_name: string;
+  sku: string;
 }
 
 interface Engineer {
@@ -57,6 +66,23 @@ export function ProjectEditModal({ project }: ProjectEditModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Product search states
+  const [productSearch, setProductSearch] = useState<{ [key: string]: string }>({});
+  const [searchResults, setSearchResults] = useState<{ [key: string]: Product[] }>({});
+  const [searchLoading, setSearchLoading] = useState<{ [key: string]: boolean }>({});
+  const [showDropdown, setShowDropdown] = useState<{ [key: string]: boolean }>({});
+  const [searchTimeouts, setSearchTimeouts] = useState<{ [key: string]: NodeJS.Timeout }>({});
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowDropdown({});
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const handleEngineerNameChange = (index: number, newName: string) => {
     const updated = [...engineers];
     updated[index].name = newName;
@@ -71,13 +97,78 @@ export function ProjectEditModal({ project }: ProjectEditModalProps) {
     const updated = [...engineers];
     updated[engIndex].bundle[prodIndex] = {
       id: value,
+      name: updated[engIndex].bundle[prodIndex].name,
     };
     setEngineers(updated);
   };
 
+  // Product search functions
+  const searchProducts = async (query: string, engineerIdx: number, bundleIdx: number) => {
+    const searchKey = `${engineerIdx}-${bundleIdx}`;
+    
+    if (!query.trim()) {
+      setSearchResults(prev => ({ ...prev, [searchKey]: [] }));
+      setShowDropdown(prev => ({ ...prev, [searchKey]: false }));
+      return;
+    }
+
+    setSearchLoading(prev => ({ ...prev, [searchKey]: true }));
+    
+    try {
+      const response = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=10&projectbundleproducts=true`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('fetched products:', data);
+        
+        setSearchResults(prev => ({ ...prev, [searchKey]: data.products || [] }));
+        setShowDropdown(prev => ({ ...prev, [searchKey]: true }));
+      }
+    } catch (error) {
+      console.error('Error searching products:', error);
+      setSearchResults(prev => ({ ...prev, [searchKey]: [] }));
+    } finally {
+      setSearchLoading(prev => ({ ...prev, [searchKey]: false }));
+    }
+  };
+
+  const handleProductSearch = (value: string, engineerIdx: number, bundleIdx: number) => {
+    const searchKey = `${engineerIdx}-${bundleIdx}`;
+    setProductSearch(prev => ({ ...prev, [searchKey]: value }));
+    
+    // Clear the selected product when typing
+    const updated = [...engineers];
+    updated[engineerIdx].bundle[bundleIdx].name = value;
+    updated[engineerIdx].bundle[bundleIdx].id = "";
+    setEngineers(updated);
+
+    // Clear existing timeout
+    if (searchTimeouts[searchKey]) {
+      clearTimeout(searchTimeouts[searchKey]);
+    }
+
+    // Set new timeout for debounced search
+    const timeoutId = setTimeout(() => {
+      searchProducts(value, engineerIdx, bundleIdx);
+    }, 500); // 500ms delay
+
+    setSearchTimeouts(prev => ({ ...prev, [searchKey]: timeoutId }));
+  };
+
+  const selectProduct = (product: Product, engineerIdx: number, bundleIdx: number) => {
+    const searchKey = `${engineerIdx}-${bundleIdx}`;
+    const updated = [...engineers];
+    
+    updated[engineerIdx].bundle[bundleIdx].id = product._id.toString();
+    updated[engineerIdx].bundle[bundleIdx].name = product.en_name;
+    
+    setEngineers(updated);
+    setProductSearch(prev => ({ ...prev, [searchKey]: product.en_name }));
+    setShowDropdown(prev => ({ ...prev, [searchKey]: false }));
+  };
+
   const addProductToEngineer = (engIndex: number) => {
     const updated = [...engineers];
-    updated[engIndex].bundle.push({ id: "" });
+    updated[engIndex].bundle.push({ id: "", name: "" });
     setEngineers(updated);
   };
 
@@ -97,7 +188,7 @@ const addEngineer = () => {
     return;
   }
 
-  setEngineers([...engineers, { name: "Ahmed", bundle: [{ id: "" }] }]);
+  setEngineers([...engineers, { name: "Ahmed", bundle: [{ id: "", name: "" }] }]);
   setError(null); // Clear any previous error
 };
 
@@ -249,27 +340,69 @@ setLoading(true);
 
               <div className="space-y-2 mt-4">
                 <Label className="font-semibold">Bundle Products</Label>
-                {eng.bundle.map((prod, prodIdx) => (
-                  <div key={prodIdx} className="flex gap-2 items-center">
-                    <Input
-                      placeholder="Product ID"
-                      value={prod.id}
-                      onChange={(e) =>
-                        handleProductIdChange(engIdx, prodIdx, e.target.value)
-                      }
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeProductFromEngineer(engIdx, prodIdx)}
-                      disabled={eng.bundle.length === 1}
-                    >
-                      <XIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                {eng.bundle.map((prod, prodIdx) => {
+                  const searchKey = `${engIdx}-${prodIdx}`;
+                  return (
+                    <div key={prodIdx} className="flex flex-col gap-2 w-full relative">
+                      <div className="flex gap-2 items-center">
+                        <div className="relative flex-1">
+                          <Input
+                            placeholder="Search for product by name..."
+                            value={productSearch[searchKey] || prod.name || ""}
+                            onChange={(e) => handleProductSearch(e.target.value, engIdx, prodIdx)}
+                            required
+                          />
+                          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          
+                          {/* Search Results Dropdown */}
+                          {showDropdown[searchKey] && (
+                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                              {searchLoading[searchKey] ? (
+                                <div className="p-3 text-center">
+                                  <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                  <span className="text-sm text-gray-500">Searching...</span>
+                                </div>
+                              ) : searchResults[searchKey]?.length > 0 ? (
+                                searchResults[searchKey].map((product) => (
+                                  <div
+                                    key={product.id}
+                                    className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                    onClick={() => selectProduct(product, engIdx, prodIdx)}
+                                  >
+                                    <div className="font-medium text-sm">{product.en_name}</div>
+                                    <div className="text-xs text-gray-500">
+                                      ID: {product.id} • SKU: {product.sku}
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="p-3 text-center text-sm text-gray-500">
+                                  No products found
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeProductFromEngineer(engIdx, prodIdx)}
+                          disabled={eng.bundle.length === 1}
+                        >
+                          <XIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {/* Show selected product ID */}
+                      {prod.id && (
+                        <div className="text-xs text-gray-600 pl-2">
+                          Selected Product ID: <span className="font-mono bg-gray-100 px-1 rounded">{prod.id}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 <Button
                   type="button"
                   size="sm"

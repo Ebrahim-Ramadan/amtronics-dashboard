@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Topleftmenu } from "@/components/top-left-menu";
-import { Loader2, Eye, ExpandIcon, Download } from "lucide-react";
+import { Loader2, Eye,  Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
+import dynamic from "next/dynamic";
+const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
 interface Customer {
   name: string;

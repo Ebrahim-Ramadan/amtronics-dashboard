@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AddProjectForm from "./AddProjectForm";
 import clientPromise from "@/lib/mongodb";
 import {ProjectEditModal} from "./ProjectEditForm";
-
+import dynamic from "next/dynamic";
+const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 interface ProductRef {
   id: string;
   name: string;
@@ -35,7 +36,10 @@ export default async function ProjectsPage() {
   return (
     <div className="min-h-screen w-full  p-2 md:p-6 ">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+         <div className="flex items-center gap-2 md:gap-4">
+                    <Topleftmenu/>
+                    <h1 className="text-xl md:text-3xl font-bold text-gray-900">Projects Dashboard</h1>
+                  </div>
         <AddProjectForm />
       </div>
 

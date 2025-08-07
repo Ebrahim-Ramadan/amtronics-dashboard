@@ -1,9 +1,11 @@
 import { Suspense } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Topleftmenu } from "@/components/top-left-menu"
+// import { Topleftmenu } from "@/components/top-left-menu"
 import { AddProductButton } from "@/components/add-product-button"
 import { ProductSearch } from "@/components/product-search"
 import { ProductDisplay } from "@/components/product-display"
+import dynamic from "next/dynamic"
+const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
 export interface Product {
   _id: string

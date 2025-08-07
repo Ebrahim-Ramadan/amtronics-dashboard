@@ -1,7 +1,7 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, UserCog, UserCheck, X, Plus, XIcon } from "lucide-react";
+import { Loader2, User, UserCog, UserCheck, X, Plus, XIcon, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,15 @@ const ENGINEER_OPTIONS = [
 
 interface ProductRef {
   id: string;
+  name?: string;
+}
+
+interface Product {
+  _id: string;
+  id: number;
+  en_name: string;
+  ar_name: string;
+  sku: string;
 }
 
 interface Engineer {
@@ -34,13 +43,30 @@ export default function AddProjectForm() {
   const [form, setForm] = useState({
     name: "",
     engineers: [
-      { name: "Ahmed", bundle: [{ id: "" }] },
+      { name: "Ahmed", bundle: [{ id: "", name: "" }] },
     ],
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  
+  // Product search states
+  const [productSearch, setProductSearch] = useState<{ [key: string]: string }>({});
+  const [searchResults, setSearchResults] = useState<{ [key: string]: Product[] }>({});
+  const [searchLoading, setSearchLoading] = useState<{ [key: string]: boolean }>({});
+  const [showDropdown, setShowDropdown] = useState<{ [key: string]: boolean }>({});
+  const [searchTimeouts, setSearchTimeouts] = useState<{ [key: string]: NodeJS.Timeout }>({});
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowDropdown({});
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   function handleEngineerSelect(value: string, idx: number) {
     const newEngineers = [...form.engineers];
@@ -54,12 +80,78 @@ export default function AddProjectForm() {
       const newEngineers = [...form.engineers];
       if (field === "id") {
         newEngineers[idx].bundle[bundleIdx][field] = e.target.value;
+      } else if (field === "name") {
+        newEngineers[idx].bundle[bundleIdx][field] = e.target.value;
       }
       setForm({ ...form, engineers: newEngineers });
     } else {
       setForm({ ...form, [e.target.name]: e.target.value });
     }
   }
+
+  // Product search functions
+  const searchProducts = async (query: string, engineerIdx: number, bundleIdx: number) => {
+    const searchKey = `${engineerIdx}-${bundleIdx}`;
+    
+    if (!query.trim()) {
+      setSearchResults(prev => ({ ...prev, [searchKey]: [] }));
+      setShowDropdown(prev => ({ ...prev, [searchKey]: false }));
+      return;
+    }
+
+    setSearchLoading(prev => ({ ...prev, [searchKey]: true }));
+    
+    try {
+      const response = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=10&projectbundleproducts=true`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('fetched products:', data);
+        
+        setSearchResults(prev => ({ ...prev, [searchKey]: data.products || [] }));
+        setShowDropdown(prev => ({ ...prev, [searchKey]: true }));
+      }
+    } catch (error) {
+      console.error('Error searching products:', error);
+      setSearchResults(prev => ({ ...prev, [searchKey]: [] }));
+    } finally {
+      setSearchLoading(prev => ({ ...prev, [searchKey]: false }));
+    }
+  };
+
+  const handleProductSearch = (value: string, engineerIdx: number, bundleIdx: number) => {
+    const searchKey = `${engineerIdx}-${bundleIdx}`;
+    setProductSearch(prev => ({ ...prev, [searchKey]: value }));
+    
+    // Clear the selected product when typing
+    const newEngineers = [...form.engineers];
+    newEngineers[engineerIdx].bundle[bundleIdx].name = value;
+    newEngineers[engineerIdx].bundle[bundleIdx].id = "";
+    setForm({ ...form, engineers: newEngineers });
+
+    // Clear existing timeout
+    if (searchTimeouts[searchKey]) {
+      clearTimeout(searchTimeouts[searchKey]);
+    }
+
+    // Set new timeout for debounced search
+    const timeoutId = setTimeout(() => {
+      searchProducts(value, engineerIdx, bundleIdx);
+    }, 500); // 500ms delay
+
+    setSearchTimeouts(prev => ({ ...prev, [searchKey]: timeoutId }));
+  };
+
+  const selectProduct = (product: Product, engineerIdx: number, bundleIdx: number) => {
+    const searchKey = `${engineerIdx}-${bundleIdx}`;
+    const newEngineers = [...form.engineers];
+    
+    newEngineers[engineerIdx].bundle[bundleIdx].id = product._id.toString();
+    newEngineers[engineerIdx].bundle[bundleIdx].name = product.en_name;
+    
+    setForm({ ...form, engineers: newEngineers });
+    setProductSearch(prev => ({ ...prev, [searchKey]: product.en_name }));
+    setShowDropdown(prev => ({ ...prev, [searchKey]: false }));
+  };
 
   function addEngineer() {
     // Cycle through icons for new engineers
@@ -68,7 +160,7 @@ export default function AddProjectForm() {
       ...form,
       engineers: [
         ...form.engineers,
-        { name: nextName, bundle: [{ id: "" }] },
+        { name: nextName, bundle: [{ id: "", name: "" }] },
       ],
     });
   }
@@ -80,7 +172,7 @@ export default function AddProjectForm() {
   }
   function addBundle(idx: number) {
     const newEngineers = [...form.engineers];
-    newEngineers[idx].bundle.push({ id: "" });
+    newEngineers[idx].bundle.push({ id: "", name: "" });
     setForm({ ...form, engineers: newEngineers });
   }
   function removeBundle(idx: number, bundleIdx: number) {
@@ -93,6 +185,7 @@ export default function AddProjectForm() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    console.log("form", form);
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
@@ -101,7 +194,7 @@ export default function AddProjectForm() {
       });
       if (!res.ok) throw new Error("Failed to add project");
       setOpen(false);
-      setForm({ name: "", engineers: [{ name: "Ahmed", bundle: [{ id: "" }] }] });
+      setForm({ name: "", engineers: [{ name: "Ahmed", bundle: [{ id: "", name: "" }] }] });
       startTransition(() => router.refresh());
     } catch (err) {
       setError("Failed to add project");
@@ -156,20 +249,71 @@ export default function AddProjectForm() {
                 </div>
                 <div>
                   <Label className="font-semibold">Bundle Products</Label>
-                  {eng.bundle.map((item, bundleIdx) => (
-                    <div key={bundleIdx} className="flex flex-row items-start sm:items-center gap-2 my-2 w-full">
-                      <Input
-                        placeholder="Paste Product ID"
-                        className="w-full sm:w-64"
-                        value={item.id}
-                        onChange={(e) => handleFormChange(e, idx, bundleIdx, "id")}
-                        required
-                      />
-                      <Button type="button" variant="destructive" size="sm" onClick={() => removeBundle(idx, bundleIdx)} disabled={eng.bundle.length === 1} className="w-auto">
-                        <XIcon/>
-                        </Button>
-                    </div>
-                  ))}
+                  {eng.bundle.map((item, bundleIdx) => {
+                    const searchKey = `${idx}-${bundleIdx}`;
+                    return (
+                      <div key={bundleIdx} className="flex flex-col gap-2 my-2 w-full relative">
+                        <div className="flex flex-row items-start sm:items-center gap-2 w-full">
+                          <div className="relative flex-1">
+                            <Input
+                              placeholder="Search for product by name..."
+                              className="w-full"
+                              value={productSearch[searchKey] || item.name || ""}
+                              onChange={(e) => handleProductSearch(e.target.value, idx, bundleIdx)}
+                              required
+                            />
+                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            
+                            {/* Search Results Dropdown */}
+                            {showDropdown[searchKey] && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {searchLoading[searchKey] ? (
+                                  <div className="p-3 text-center">
+                                    <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                    <span className="text-sm text-gray-500">Searching...</span>
+                                  </div>
+                                ) : searchResults[searchKey]?.length > 0 ? (
+                                  searchResults[searchKey].map((product) => (
+                                    <div
+                                      key={product.id}
+                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                      onClick={() => selectProduct(product, idx, bundleIdx)}
+                                    >
+                                      <div className="font-medium text-sm">{product.en_name}</div>
+                                      <div className="text-xs text-gray-500">
+                                        ID: {product.id} • SKU: {product.sku}
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 text-center text-sm text-gray-500">
+                                    No products found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="destructive" 
+                            size="sm" 
+                            onClick={() => removeBundle(idx, bundleIdx)} 
+                            disabled={eng.bundle.length === 1} 
+                            className="w-auto"
+                          >
+                            <XIcon/>
+                          </Button>
+                        </div>
+                        
+                        {/* Show selected product ID */}
+                        {item.id && (
+                          <div className="text-xs text-gray-600 pl-2">
+                            Selected Product ID: <span className="font-mono bg-gray-100 px-1 rounded">{item.id}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   <Button
                     type="button"
                     size="sm"

@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package,  Menu, TableColumnsSplit, CheckCircle, AlignVerticalJustifyStart, PersonStanding } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package,  Menu, TableColumnsSplit, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -119,7 +119,7 @@ export const Topleftmenu = () => {
             )}
             aria-current={pathname === '/projects' ? 'page' : undefined}
           >
-            <PersonStanding className="h-4 w-4" />
+            <Projector className="h-4 w-4" />
             Projects
           </Link>
         </DropdownMenuItem>
@@ -133,3 +133,5 @@ export const Topleftmenu = () => {
     </DropdownMenu>
   );
 };
+
+export default Topleftmenu 

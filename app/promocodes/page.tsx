@@ -2,14 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LogoutButton } from "@/components/logout-button"
 import { AddPromoCodeButton } from "@/components/add-promo-code-button"
 import { PromoCodesTable } from "@/components/promo-codes-table"
-import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2 } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from "@/components/ui/button"
-import { Topleftmenu } from "@/components/top-left-menu"
+import dynamic from "next/dynamic"
+const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
 export interface PromoCode {
   _id: string
