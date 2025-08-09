@@ -48,7 +48,7 @@ export interface Order {
   total: number
   discount: number
   promoCode: string
-  status: string
+  status: "pending" | "completed" | "canceled"
   createdAt: string
   shippingFee: number
 }

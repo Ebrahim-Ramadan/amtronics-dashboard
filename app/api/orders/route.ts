@@ -115,6 +115,12 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: "Missing required fields (id and status)" }, { status: 400 })
     }
 
+    // Validate status values
+    const allowedStatuses = ["pending", "completed", "canceled"]
+    if (!allowedStatuses.includes(status)) {
+      return NextResponse.json({ message: "Invalid status value" }, { status: 400 })
+    }
+
     const client = await clientPromise
     const db = client.db("amtronics")
     const collection = db.collection("orders")

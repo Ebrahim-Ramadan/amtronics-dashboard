@@ -23,54 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-interface Product {
-  _id: string;
-  price: number | string;
-  ave_cost: number | string;
-  image: string;
-  en_name: string;
-}
-
-interface IndividualItem {
-  type?: "individual";
-  product: Product;
-  quantity: number;
-}
-
-interface ProjectBundleItem {
-  type: "project-bundle";
-  projectId: string;
-  projectName: string;
-  engineerNames: string[];
-  bundleIds: string[];
-  products: Product[];
-  quantity: number;
-}
-
-type OrderItem = IndividualItem | ProjectBundleItem;
-
-interface Order {
-  _id: string;
-  items: OrderItem[];
-  customerInfo: {
-    name: string;
-    phone: string;
-    email: string;
-    country: string;
-    city: string;
-    area: string;
-    block: string;
-    street: string;
-    house: string;
-  };
-  total: number;
-  discount: number;
-  promoCode?: string;
-  shippingFee: number;
-  status: "pending" | "completed";
-  createdAt: string;
-}
+import type { Order, OrderItem, ProjectBundleItem } from "@/app/page";
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -145,8 +98,28 @@ export function OrderDetailsModal({
       toast.success("Order marked as completed!");
       onOpenChange(false);
       router.refresh();
-    } catch {
-      toast.error("An error occurred");
+    } catch (error) {
+      toast.error("Failed to update order status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: order._id, status: "canceled" }),
+      });
+
+      if (!res.ok) throw new Error("Failed to cancel order");
+      toast.success("Order has been canceled!");
+      onOpenChange(false);
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to cancel order");
     } finally {
       setIsLoading(false);
     }
@@ -194,6 +167,8 @@ export function OrderDetailsModal({
                   className={
                     order.status === "completed"
                       ? "bg-green-100 text-green-800"
+                      : order.status === "canceled"
+                      ? "bg-red-100 text-red-800"
                       : "bg-yellow-100 text-yellow-800"
                   }
                 >
@@ -202,13 +177,23 @@ export function OrderDetailsModal({
               </div>
 
               {order.status === "pending" && (
-                <Button
-                  onClick={handleMarkAsCompleted}
-                  disabled={isLoading}
-                  className="w-full print:hidden"
-                >
-                  {isLoading ? "Marking as Completed..." : "Mark as Completed"}
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    onClick={handleMarkAsCompleted}
+                    disabled={isLoading}
+                    className="w-full print:hidden"
+                  >
+                    {isLoading ? "Marking as Completed..." : "Mark as Completed"}
+                  </Button>
+                  <Button
+                    onClick={handleCancelOrder}
+                    disabled={isLoading}
+                    variant="destructive"
+                    className="w-full print:hidden"
+                  >
+                    {isLoading ? "Canceling Order..." : "Cancel Order"}
+                  </Button>
+                </div>
               )}
 
               <div className="flex justify-between text-sm">

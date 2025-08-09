@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package,  Menu, TableColumnsSplit, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package,  Menu, TableColumnsSplit, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -56,6 +56,19 @@ export const Topleftmenu = () => {
           >
             <CheckCircle   className="h-4 w-4" />
             Completed Orders
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            href="/canceled-orders"
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+              pathname === '/canceled-orders' && 'bg-gray-100 text-blue-600'
+            )}
+            aria-current={pathname === '/canceled-orders' ? 'page' : undefined}
+          >
+            <XCircle className="h-4 w-4" />
+            Canceled Orders
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

@@ -132,6 +132,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     className={
                       order.status === "completed"
                         ? "bg-green-100 text-green-800"
+                        : order.status === "canceled"
+                        ? "bg-red-100 text-red-800"
                         : "bg-yellow-100 text-yellow-800"
                     }
                   >
