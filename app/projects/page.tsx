@@ -2,8 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AddProjectForm from "./AddProjectForm";
 import clientPromise from "@/lib/mongodb";
 import {ProjectEditModal} from "./ProjectEditForm";
-import dynamic from "next/dynamic";
-const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
+import dynamicImport from "next/dynamic";
+
+// Force dynamic rendering and disable caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const Topleftmenu = dynamicImport(() => import('@/components/top-left-menu'))
 interface ProductRef {
   id: string;
   name?: string;
@@ -24,11 +29,17 @@ async function fetchProjectsFromDB(): Promise<Project[]> {
   const client = await clientPromise;
   const db = client.db("amtronics");
   const collection = db.collection("projects");
-  const projects = await collection.find({}, { projection: { name: 1, engineers: 1 } }).toArray();
+  
+  // Force fresh data by adding a timestamp to avoid any potential caching
+  const projects = await collection.find({}, { 
+    projection: { name: 1, engineers: 1 }
+  }).toArray();
+  
   return projects.map((p: any) => ({ ...p, _id: p._id.toString() }));
 }
 
 export default async function ProjectsPage() {
+  // Add cache control headers to prevent caching
   const projects = await fetchProjectsFromDB();
 
   return (

@@ -34,7 +34,13 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ message: "Project updated successfully" });
+    const response = NextResponse.json({ message: "Project updated successfully" });
+    // Add no-cache headers
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error) {
     console.error("Error updating project:", error);
     return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
@@ -55,7 +61,14 @@ export async function GET(request: NextRequest) {
         engineers: 1,
       }
     }).toArray();
-    return NextResponse.json({ projects });
+    
+    const response = NextResponse.json({ projects });
+    // Add no-cache headers
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error) {
     console.error("Error fetching projects:", error);
     return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
@@ -79,7 +92,14 @@ export async function POST(request: NextRequest) {
       engineers: body.engineers,
       createdAt: new Date(),
     });
-    return NextResponse.json({ message: "Project added", id: result.insertedId }, { status: 201 });
+    
+    const response = NextResponse.json({ message: "Project added", id: result.insertedId }, { status: 201 });
+    // Add no-cache headers
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error) {
     console.error("Error adding project:", error);
     return NextResponse.json({ error: "Failed to add project" }, { status: 500 });
@@ -105,7 +125,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ message: "Project deleted" });
+    const response = NextResponse.json({ message: "Project deleted" });
+    // Add no-cache headers
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error) {
     console.error("Error deleting project:", error);
     return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
