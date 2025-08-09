@@ -6,9 +6,7 @@ import dynamic from "next/dynamic";
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 interface ProductRef {
   id: string;
-  name: string;
-  image: string;
-  price: number;
+  name?: string;
 }
 
 interface Engineer {
@@ -68,14 +66,16 @@ export default async function ProjectsPage() {
                           <th className="text-left px-3 py-1 border-b border-gray-300">
                             Product ID
                           </th>
-                         
+                          <th className="text-left px-3 py-1 border-b border-gray-300">
+                            Product Name
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {eng.bundle.map((item, i) => (
                           <tr key={i} className="border-b border-gray-200">
                             <td className="px-3 py-1">{item.id}</td>
-                            
+                            <td className="px-3 py-1">{item.name || 'N/A'}</td>
                           </tr>
                         ))}
                       </tbody>
