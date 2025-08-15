@@ -159,6 +159,7 @@ async function OrdersDashboardContent({ searchParams, initialStatus }: OrdersDas
   const page = Number(searchParams.page) || 1
   const sort = searchParams.sort || "latest"
   const search = searchParams.search || ""
+  const promoCode = searchParams.promoCode || ""
 
   const params = new URLSearchParams({
     page: page.toString(),
@@ -166,6 +167,7 @@ async function OrdersDashboardContent({ searchParams, initialStatus }: OrdersDas
     sort,
     search,
     status: initialStatus, // Pass the status
+    ...(promoCode ? { promoCode } : {}),
   })
 
   try {
