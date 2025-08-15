@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
     // Build the query dynamically based on status
     const query: any = { status: status }
 
+    // Promo code filter
+    const promoCode = searchParams.get("promoCode") || ""
+    if (promoCode) {
+      query.promoCode = promoCode
+    }
+
     // Add search functionality
     if (search) {
       query.$or = [
@@ -71,6 +77,10 @@ export async function GET(request: NextRequest) {
   shippingFee: 1,
 };
 
+
+    // Get all unique promo codes for filter dropdown
+    const promoCodesList = await collection.distinct("promoCode", { status: status });
+
     // Execute queries in parallel
     const [orders, totalCount, totalValueResult] = await Promise.all([
       collection.find(query).project(projection).sort(sortObj).skip(skip).limit(limit).toArray(),
@@ -80,7 +90,6 @@ export async function GET(request: NextRequest) {
         { $group: { _id: null, totalValue: { $sum: "$total" } } }
       ]).toArray()
     ])
-console.log('fetching...');
 
     const totalValue = totalValueResult.length > 0 ? totalValueResult[0].totalValue : 0
 
@@ -100,6 +109,7 @@ console.log('fetching...');
       totalValue,
       currentPage: page,
       totalPages,
+      promoCodes: promoCodesList.filter(Boolean),
     })
   } catch (error) {
     console.error("Error fetching orders:", error)

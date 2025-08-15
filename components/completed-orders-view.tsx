@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import dynamic from "next/dynamic"
 import { Order } from "@/app/completed-orders/page"
+import SearchAndSort from "./search-and-sort"
 
 const FeesModal = dynamic(() => import("@/components/fees-modal"), { ssr: false })
 
@@ -18,9 +19,10 @@ interface CompletedOrdersViewProps {
   totalValue: number
   currentPage: number
   totalPages: number
+  promoCodes?: string[]
 }
 
-export function CompletedOrdersView({ orders, totalCount, totalValue, currentPage, totalPages }: CompletedOrdersViewProps) {
+export function CompletedOrdersView({ orders, totalCount, totalValue, currentPage, totalPages, promoCodes }: CompletedOrdersViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [totalFees, setTotalFees] = useState(0)
   const [isCalculated, setIsCalculated] = useState(false)
@@ -99,6 +101,11 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
       </div>
 
       <FeesModal open={isModalOpen} onOpenChange={setIsModalOpen} onSubmit={handleFeesSubmit} />
+
+      {/* Pass promoCodes to SearchAndSort */}
+      <div className="mb-4">
+        <SearchAndSort promoCodes={promoCodes} />
+      </div>
 
       <Card>
         <CardHeader>

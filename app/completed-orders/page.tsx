@@ -177,7 +177,7 @@ async function OrdersDashboardContent({ searchParams, initialStatus }: OrdersDas
       throw new Error("Failed to fetch orders")
     }
 
-    const { orders, totalCount, currentPage, totalPages, totalValue }: OrdersResult = await response.json()
+    const { orders, totalCount, currentPage, totalPages, totalValue, promoCodes }: OrdersResult & { promoCodes: string[] } = await response.json()
     console.log("Fetched orders:", orders)
 
     if (orders.length === 0) {
@@ -199,6 +199,7 @@ async function OrdersDashboardContent({ searchParams, initialStatus }: OrdersDas
         totalValue={totalValue}
         currentPage={currentPage}
         totalPages={totalPages}
+        promoCodes={promoCodes}
       />
     )
   } catch (error) {
@@ -240,7 +241,7 @@ export default function CompletedOrdersDashboard({ searchParams }: PageProps) {
           </div>
 
           {/* Search, Sort, and Logout */}
-          <SearchAndSort />
+          {/* <SearchAndSort /> */}
         </div>
 
         <Suspense key={suspenseKey} fallback={isInitialLoad ? <LoadingSkeleton /> : <SortingLoadingSkeleton />}>

@@ -92,6 +92,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               <TableHead>Total</TableHead>
               <TableHead>Shipping</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Promo Code</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -139,6 +140,9 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   >
                     {order.status}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  {order.promoCode || <span className="text-gray-400">—</span>}
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">{formatDate(order.createdAt)}</TableCell>
                 <TableCell>

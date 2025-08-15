@@ -13,12 +13,19 @@ import {
 import { Search, ArrowUpDown, Loader2 } from "lucide-react"
 import { useState, useTransition, useEffect, useCallback } from "react"
 
-export function SearchAndSort() {
+interface PromoCodeFilterProps {
+  promoCodes: string[]
+}
+
+
+export function SearchAndSort({ promoCodes = [] }: Partial<PromoCodeFilterProps> = {}) {
   const router = useRouter()
   const searchParams = useSearchParams()
+
   const [isPending, startTransition] = useTransition()
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "")
   const [sortPending, setSortPending] = useState(false)
+  const [promoCode, setPromoCode] = useState(searchParams.get("promoCode") || "")
 
   const currentSort = (searchParams.get("sort") as "latest" | "oldest") || "latest"
 
@@ -64,6 +71,26 @@ export function SearchAndSort() {
         />
       </div>
 
+      {/* Promo Code Filter Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" disabled={isPending}>
+            Promo Code: {promoCode || "All"}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuRadioGroup value={promoCode} onValueChange={(code) => {
+            setPromoCode(code);
+            updateSearchParams("promoCode", code);
+          }}>
+            <DropdownMenuRadioItem value="">All</DropdownMenuRadioItem>
+            {promoCodes && promoCodes.map((code) => (
+              <DropdownMenuRadioItem key={code} value={code}>{code}</DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <DropdownMenu >
         <DropdownMenuTrigger asChild className="text-end self-end ">
           <Button variant="outline" disabled={isPending}>
@@ -85,3 +112,5 @@ export function SearchAndSort() {
     </div>
   )
 }
+
+export default SearchAndSort;
