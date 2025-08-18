@@ -416,7 +416,7 @@ export function OrderDetailsModal({
             {/* Footer */}
             <div className="text-center mt-2">
               <div>Thank you for shopping</div>
-              <div>with us You're the best</div>
+              <div>with us You&apos;re the best</div>
               <div>Engineer</div>
             </div>
           </div>
