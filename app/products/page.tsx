@@ -98,10 +98,25 @@ async function ProductsDashboardContent({ searchParams }: PageProps) {
 
     const { products, totalCount }: ProductsResult = await response.json()
 
-    const product = products.length > 0 ? products[0] : null;
+    if (products.length === 0) {
+      return (
+        <Card>
+          <CardContent className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-lg font-medium text-gray-900">No products found</p>
+              <p className="text-sm text-gray-500">Try a different search term.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
 
     return (
-      <ProductDisplay initialProduct={product} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {products.map((product) => (
+          <ProductDisplay key={product._id} initialProduct={product} />
+        ))}
+      </div>
     )
   } catch (error: any) {
     return (
@@ -109,7 +124,7 @@ async function ProductsDashboardContent({ searchParams }: PageProps) {
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="text-red-500 mb-2">⚠️</div>
-            <p className="text-lg font-medium text-gray-900">Failed to load product</p>
+            <p className="text-lg font-medium text-gray-900">Failed to load products</p>
             <p className="text-sm text-gray-500">Error: {error.message}. Please check your database connection or try again.</p>
           </div>
         </CardContent>
