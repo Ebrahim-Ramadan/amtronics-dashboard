@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     // Define projection to only include specific product fields
     let projection : any 
     if( projectbundleproducts === "true" ) {
-    console.log("hell yeah", projectbundleproducts);
+    // console.log("hell yeah", projectbundleproducts);
      projection = {
       _id: 1,
       en_name: 1,

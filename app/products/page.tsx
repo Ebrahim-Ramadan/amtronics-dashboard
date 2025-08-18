@@ -83,7 +83,7 @@ async function ProductsDashboardContent({ searchParams }: PageProps) {
   }
 
   const params = new URLSearchParams({
-    limit: "1", // Only fetch one product by ID
+    limit: "5", // Fetch five products
     search: search.trim(),
   })
 
