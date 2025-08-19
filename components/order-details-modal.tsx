@@ -419,6 +419,14 @@ export function OrderDetailsModal({
               <div>with us You&apos;re the best</div>
               <div>Engineer</div>
             </div>
+            <div className="flex justify-center mt-4">
+              <img
+                src="/invoice-amtronics-logo-at-the-end.jpg"
+                alt="Invoice Logo"
+                className="w-32 h-auto object-contain"
+                style={{ maxHeight: 80 }}
+              />
+            </div>
           </div>
           {/* Print Button (only visible on screen) */}
           <Button

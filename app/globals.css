@@ -149,6 +149,23 @@
 
 /* ========== Print Styles ========== */
 @media print {
+   body, html {
+    background: white !important;
+  }
+  .print-area {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    font-size: 11px !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  
   body * {
     visibility: hidden !important;
   }
