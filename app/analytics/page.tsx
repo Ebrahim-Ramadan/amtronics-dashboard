@@ -46,6 +46,8 @@ export default function AnalyticsPage() {
   const [month, setMonth] = useState<number | "">("");
   const [day, setDay] = useState<number | "">("");
   const [analytics, setAnalytics] = useState<any[]>([]);
+  const [engineerBundle, setEngineerBundle] = useState<any[]>([])
+  const [engineerName, setEngineerName] = useState<string>("")
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
  const [mostSoldProduct, setMostSoldProduct] = useState<any | null>(null);
@@ -70,6 +72,16 @@ export default function AnalyticsPage() {
         setAnalytics(data.analytics || []);
         setMostSoldProduct(data.mostSoldProduct || null);
         setLeastSoldProduct(data.leastSoldProduct || null);
+
+        // Engineer private bundle (if logged as engineer/sub)
+        try {
+          const engRes = await fetch(`/api/analytics/engineer`)
+          if (engRes.ok) {
+            const engData = await engRes.json()
+            setEngineerBundle(engData.bundle || [])
+            setEngineerName(engData.engineer || "")
+          }
+        } catch {}
       } catch (err: any) {
         setError(err.message || "Unknown error");
       } finally {
@@ -299,6 +311,28 @@ export default function AnalyticsPage() {
 
    </div>
         </LazyLoad>
+
+        {engineerBundle.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Private Bundle {engineerName ? `(Engineer: ${engineerName})` : ''}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {engineerBundle.map((p) => (
+                  <div key={p._id} className="border rounded p-3">
+                    <div className="font-semibold text-sm mb-1">{p.en_name}</div>
+                    {p.image && (
+                      <img src={(p.image || '').split(',')[0]} alt={p.en_name} className="w-full h-28 object-cover rounded" />
+                    )}
+                    <div className="text-xs text-gray-600 mt-1">SKU: {p.sku}</div>
+                    <div className="text-xs text-gray-600">Price: KD {Number(p.price).toFixed(2)}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
     </div>

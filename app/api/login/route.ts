@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server'
+import { buildSessionPayload, createSession, setSessionCookie, verifyPassword } from '@/lib/auth'
+import clientPromise from '@/lib/mongodb'
+import type { Role, UserDoc } from '@/lib/types'
 
 // Retrieve credentials from environment variable and parse JSON
 const ADMIN_CREDENTIALS_STRING = process.env.ADMIN_CREDENTIALS;
@@ -17,18 +20,36 @@ if (ADMIN_CREDENTIALS_STRING) {
 export async function POST(request: Request) {
   const { email, password } = await request.json()
 
-  // Check if provided credentials match any in the array
-  const isAuthenticated = adminCredentials.some(credential =>
-    credential.email === email && credential.password === password
-  );
-
-  if (isAuthenticated) {
-    const response = NextResponse.json({ message: 'Login successful' }, { status: 200 })
-    // Set an authenticated cookie (valid for 1 day)
-    response.cookies.set('authenticated', 'true', { path: '/', maxAge: 60 * 60 * 24 })
+  // 1) Check admin env credentials
+  const matchedAdmin = adminCredentials.find(credential => credential.email === email && credential.password === password)
+  if (matchedAdmin) {
+    const payload = buildSessionPayload({ email, role: 'admin' as Role })
+    const token = createSession(payload)
+    const response = NextResponse.json({ message: 'Login successful', role: 'admin' }, { status: 200 })
+    setSessionCookie(response, token)
     return response
-  } else {
-    // Return an error response for invalid credentials
+  }
+
+  // 2) Check DB users
+  const client = await clientPromise
+  const db = client.db('amtronics')
+  const user = await db.collection<UserDoc>('users').findOne({ email })
+  if (!user || !user.active) {
     return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 })
   }
+  const ok = await verifyPassword(password, user.passwordHash)
+  if (!ok) {
+    return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 })
+  }
+
+  const payload = buildSessionPayload({
+    email: user.email,
+    role: user.role,
+    engineerName: user.engineerName,
+    allowedEngineers: user.allowedEngineers,
+  })
+  const token = createSession(payload)
+  const response = NextResponse.json({ message: 'Login successful', role: user.role }, { status: 200 })
+  setSessionCookie(response, token)
+  return response
 }

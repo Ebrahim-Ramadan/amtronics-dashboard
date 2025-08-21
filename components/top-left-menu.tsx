@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package,  Menu, TableColumnsSplit, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package,  Menu, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle, Shield } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,18 +15,42 @@ import Link from 'next/link';
 
 export const Topleftmenu = () => {
   const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null)
+  const [email, setEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    fetch('/api/session')
+      .then(r => r.json())
+      .then(data => { if (mounted) { setRole(data.role); setEmail(data.email) } })
+      .catch(() => {})
+    return () => { mounted = false }
+  }, [])
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Open navigation menu"
-          className=" rounded-full transition-colors"
-        >
-          <Menu className="h-6 w-6" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Open navigation menu"
+            className=" rounded-full transition-colors"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+          {/* Profile pill */}
+          {role && (
+            <div className="flex items-center gap-2 rounded-full px-3 py-1 border text-xs bg-white">
+              <div className={cn('h-6 w-6 rounded-full flex items-center justify-center text-white',
+                role === 'admin' ? 'bg-blue-600' : role === 'engineer' ? 'bg-emerald-600' : 'bg-gray-500'
+              )}>
+                {email ? email.charAt(0).toUpperCase() : role.charAt(0).toUpperCase()}
+              </div>
+              <span className="capitalize">{role}</span>
+            </div>
+          )}
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
@@ -110,6 +134,21 @@ export const Topleftmenu = () => {
             Analytics
           </Link>
         </DropdownMenuItem>
+        {role === 'admin' && (
+          <DropdownMenuItem asChild>
+            <Link
+              href="/admin"
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+                pathname === '/admin' && 'bg-gray-100 text-blue-600'
+              )}
+              aria-current={pathname === '/admin' ? 'page' : undefined}
+            >
+              <Shield className="h-4 w-4" />
+              Admin Management
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link
             href="/customers"

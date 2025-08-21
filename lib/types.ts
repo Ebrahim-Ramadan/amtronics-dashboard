@@ -62,3 +62,27 @@ export interface CustomerInfo {
   street: string
   house: string
 }
+
+// --- Auth & RBAC Types ---
+export type Role = "admin" | "engineer" | "sub"
+
+export interface UserDoc {
+  _id?: string
+  email: string
+  passwordHash: string
+  role: Role
+  engineerName?: string
+  allowedEngineers?: string[]
+  active: boolean
+  createdAt: Date
+  updatedAt?: Date
+}
+
+export interface SessionData {
+  email: string
+  role: Role
+  engineerName?: string
+  allowedEngineers?: string[]
+  iat: number
+  exp: number
+}
