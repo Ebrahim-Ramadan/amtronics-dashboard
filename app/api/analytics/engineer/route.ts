@@ -9,7 +9,11 @@ export async function GET(request: NextRequest) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { searchParams } = new URL(request.url)
-    const engineer = searchParams.get('engineer') || session.engineerName
+    let engineer = searchParams.get('engineer') || session.engineerName || ''
+    if (session.role === 'sub' && !engineer) {
+      const allowed = session.allowedEngineers || []
+      engineer = allowed[0] || ''
+    }
     if (!engineer) return NextResponse.json({ error: 'Engineer not specified' }, { status: 400 })
 
     if (session.role === 'engineer' && session.engineerName !== engineer) {
@@ -41,7 +45,34 @@ export async function GET(request: NextRequest) {
     }).filter(Boolean) as ObjectId[]
     const products = await db.collection('products').find({ _id: { $in: ids } }).toArray()
 
-    return NextResponse.json({ engineer, projects, bundle: products })
+    // Aggregate orders to compute units and revenue for bundle
+    const ordersAgg = await db.collection('orders').aggregate([
+      { $match: { status: 'completed' } },
+      { $unwind: '$items' },
+      { $match: { 'items.product._id': { $in: ids } } },
+      { $group: {
+        _id: '$items.product._id',
+        unitsSold: { $sum: '$items.quantity' },
+        revenue: { $sum: { $multiply: [ '$items.product.price', '$items.quantity' ] } },
+      }},
+    ]).toArray()
+
+    const byProduct = ordersAgg.map(row => {
+      const p = products.find(pr => pr._id && pr._id.equals(row._id)) || {}
+      return {
+        productId: row._id,
+        en_name: (p as any).en_name,
+        sku: (p as any).sku,
+        price: (p as any).price,
+        unitsSold: row.unitsSold || 0,
+        revenue: row.revenue || 0,
+      }
+    })
+
+    const totalUnitsSold = byProduct.reduce((s, r) => s + (r.unitsSold || 0), 0)
+    const totalRevenue = byProduct.reduce((s, r) => s + (r.revenue || 0), 0)
+
+    return NextResponse.json({ engineer, bundle: products, analytics: { byProduct, totalUnitsSold, totalRevenue } })
   } catch (e) {
     console.error('Engineer analytics error', e)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
