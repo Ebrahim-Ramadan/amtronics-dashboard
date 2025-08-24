@@ -337,7 +337,7 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="model_3d_url" className="text-right">3D Model URL</Label>
+            <Label htmlFor="model_3d_url" className="text-right">Or 3D Model URL</Label>
             <Input 
               id="model_3d_url" 
               value={formData.model_3d_url || ""} 
