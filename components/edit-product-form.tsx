@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useTransition } from "react"
 import { toast } from "sonner"
 import { Product } from "@/app/products/page"
+import { categories } from "./add-product-form"
 
 interface EditProductFormProps {
   product: Product
@@ -18,13 +19,15 @@ interface EditProductFormProps {
 export function EditProductForm({ product, onSuccess, onClose }: EditProductFormProps) {
   const [isPending, startTransition] = useTransition()
   const [formData, setFormData] = useState<Product>(product)
+  const [selected3DFile, setSelected3DFile] = useState<File | null>(null)
+  const [uploading3D, setUploading3D] = useState(false)
 
   useEffect(() => {
     setFormData(product)
   }, [product])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { id, value, type } = e.target
     setFormData((prev) => ({
       ...prev,
       [id]:
@@ -37,8 +40,56 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         id === "visible_in_search" ||
         id === "discount"
           ? Number(value) // Convert to number for numeric fields
+          : id === "is_3d"
+          ? (e.target as HTMLInputElement).checked // Handle checkbox
           : value,
     }))
+
+    // Auto-set 3D flag when 3D categories are selected
+    if (id === "en_category" || id === "ar_category") {
+      const is3DCategory = value === "3D Print" || value === "custom-3D"
+      setFormData(prev => ({ ...prev, is_3d: is3DCategory }))
+    }
+  }
+
+  const handle3DFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelected3DFile(file)
+      // Clear the URL field when a new file is selected
+      setFormData(prev => ({ ...prev, model_3d_url: "" }))
+    }
+  }
+
+  const upload3DModel = async (): Promise<string | null> => {
+    if (!selected3DFile) return null
+
+    setUploading3D(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', selected3DFile)
+      formData.append('productId', product._id || 'temp')
+
+      const response = await fetch('/api/products/3d-upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        return data.url
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Failed to upload 3D model')
+        return null
+      }
+    } catch (error) {
+      console.error('3D upload error:', error)
+      toast.error('Failed to upload 3D model')
+      return null
+    } finally {
+      setUploading3D(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -100,16 +151,32 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
 
     startTransition(async () => {
       try {
+        // If 3D model is selected, upload it first
+        let model3DUrl: string | undefined = formData.model_3d_url || undefined
+        if (selected3DFile && formData.is_3d) {
+          const uploadedUrl = await upload3DModel()
+          if (!uploadedUrl) {
+            toast.error("Failed to upload 3D model. Please try again.")
+            return
+          }
+          model3DUrl = uploadedUrl
+        }
+
+        const productData = {
+          ...formData,
+          model_3d_url: model3DUrl
+        }
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/products`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(productData),
         })
 
         if (response.ok) {
-          const updatedProduct = formData;
+          const updatedProduct = { ...formData, model_3d_url: model3DUrl || undefined };
           toast.success("Product updated successfully!")
           onSuccess?.(updatedProduct)
         } else {
@@ -163,20 +230,141 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="en_main_category" className="text-right">English Main Category</Label>
-        <Input id="en_main_category" value={formData.en_main_category} onChange={handleChange} className="col-span-3" required disabled={isPending} />
+        <select 
+          id="en_main_category" 
+          value={formData.en_main_category} 
+          onChange={handleChange} 
+          className="col-span-3 border rounded px-3 py-2" 
+          required 
+          disabled={isPending}
+        >
+          <option value="">Select Main Category</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="ar_main_category" className="text-right">Arabic Main Category</Label>
-        <Input id="ar_main_category" value={formData.ar_main_category} onChange={handleChange} className="col-span-3" required disabled={isPending} />
+        <select 
+          id="ar_main_category" 
+          value={formData.ar_main_category} 
+          onChange={handleChange} 
+          className="col-span-3 border rounded px-3 py-2" 
+          required 
+          disabled={isPending}
+        >
+          <option value="">Select Main Category</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="en_category" className="text-right">English Category</Label>
-        <Input id="en_category" value={formData.en_category} onChange={handleChange} className="col-span-3" required disabled={isPending} />
+        <select 
+          id="en_category" 
+          value={formData.en_category} 
+          onChange={handleChange} 
+          className="col-span-3 border rounded px-3 py-2" 
+          required 
+          disabled={isPending}
+        >
+          <option value="">Select Category</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="ar_category" className="text-right">Arabic Category</Label>
-        <Input id="ar_category" value={formData.ar_category} onChange={handleChange} className="col-span-3" required disabled={isPending} />
+        <select 
+          id="ar_category" 
+          value={formData.ar_category} 
+          onChange={handleChange} 
+          className="col-span-3 border rounded px-3 py-2" 
+          required 
+          disabled={isPending}
+        >
+          <option value="">Select Category</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
       </div>
+      
+      {/* 3D Category Option */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="is_3d" className="text-right">3D Product</Label>
+        <div className="col-span-3 flex items-center gap-2">
+          <input
+            id="is_3d"
+            type="checkbox"
+            checked={formData.is_3d || false}
+            onChange={handleChange}
+            disabled={isPending}
+            className="h-4 w-4"
+          />
+          <span className="text-sm text-gray-600">This is a 3D printable product</span>
+        </div>
+      </div>
+
+      {/* 3D Model Upload */}
+      {formData.is_3d && (
+        <>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="3d_file" className="text-right">3D Model File</Label>
+            <div className="col-span-3">
+              <Input
+                id="3d_file"
+                type="file"
+                accept=".glb,.gltf,.obj,.fbx,.stl,.3ds,.dae"
+                onChange={handle3DFileSelect}
+                disabled={isPending || uploading3D}
+                className="col-span-3"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Supported formats: GLB, GLTF, OBJ, FBX, STL, 3DS, DAE
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="model_3d_url" className="text-right">3D Model URL</Label>
+            <Input 
+              id="model_3d_url" 
+              value={formData.model_3d_url || ""} 
+              onChange={handleChange} 
+              placeholder="Or enter 3D model URL directly"
+              className="col-span-3" 
+              disabled={isPending} 
+            />
+          </div>
+          {formData.model_3d_url && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Current 3D Model</Label>
+              <div className="col-span-3">
+                <a 
+                  href={formData.model_3d_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline text-sm"
+                >
+                  View Current 3D Model
+                </a>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="price" className="text-right">Price</Label>
         <Input id="price" type="number" value={formData.price} onChange={handleChange} className="col-span-3" required disabled={isPending} />
@@ -221,7 +409,7 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         <Label htmlFor="en_brand" className="text-right">English Brand (Optional)</Label>
         <Input id="en_brand" value={formData.en_brand} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending || uploading3D}>
         {isPending ? "Updating Product..." : "Update Product"}
       </Button>
       <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>

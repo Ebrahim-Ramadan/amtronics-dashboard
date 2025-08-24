@@ -33,6 +33,8 @@ export interface Product {
   ar_brand?: string
   en_brand?: string
   barcode?: number // Optional field for barcode
+  is_3d?: boolean
+  model_3d_url?: string
 }
 
 interface ProductsResult {

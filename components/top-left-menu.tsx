@@ -41,7 +41,7 @@ export const Topleftmenu = () => {
           </Button>
           {/* Profile pill */}
           {role && (
-            <div className="flex items-center gap-2 rounded-full px-3 py-1 border text-xs bg-white">
+            <div className="flex items-center gap-2 rounded-full px-2 py-1 border text-xs bg-white">
               <div className={cn('h-6 w-6 rounded-full flex items-center justify-center text-white',
                 role === 'admin' ? 'bg-blue-600' : role === 'engineer' ? 'bg-emerald-600' : 'bg-gray-500'
               )}>

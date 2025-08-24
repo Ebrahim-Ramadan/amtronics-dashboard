@@ -24,6 +24,8 @@ export interface Product {
   ar_brand?: string
   en_brand?: string
   ave_cost?: number
+  is_3d?: boolean
+  model_3d_url?: string
 }
 
 export interface CartItem {
@@ -85,4 +87,17 @@ export interface SessionData {
   allowedEngineers?: string[]
   iat: number
   exp: number
+}
+
+// --- 3D Model Upload Types ---
+export interface Model3DUpload {
+  productId: string
+  file: File
+  filename: string
+}
+
+export interface Model3DResponse {
+  success: boolean
+  url?: string
+  error?: string
 }
