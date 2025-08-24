@@ -20,21 +20,25 @@ export async function POST(request: NextRequest) {
     // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+const originalName = (file as any).name as string | undefined;
+const ext = originalName ? originalName.split('.').pop() : '';
+const publicId = ext
+  ? `3d-models/${productId}_${Date.now()}.${ext}`
+  : `3d-models/${productId}_${Date.now()}`;
 
-    // Upload to Cloudinary (as raw file)
-    const uploadResult = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'raw',
-          public_id: `3d-models/${productId}_${Date.now()}`,
-          folder: '3d-models',
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(buffer);
-    });
+const uploadResult = await new Promise<any>((resolve, reject) => {
+  cloudinary.uploader.upload_stream(
+    {
+      resource_type: 'raw',
+      public_id: publicId,
+      folder: '3d-models',
+    },
+    (error, result) => {
+      if (error) reject(error);
+      else resolve(result);
+    }
+  ).end(buffer);
+});
 
     return NextResponse.json({
       success: true,

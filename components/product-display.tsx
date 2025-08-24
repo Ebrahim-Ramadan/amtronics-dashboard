@@ -3,12 +3,13 @@
 import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Trash2, Loader2 } from "lucide-react"
+import { Trash2, Loader2, CurlyBraces, Cuboid } from "lucide-react"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { EditProductButton } from "@/components/edit-product-button"
 import { Product } from "@/app/products/page"
+import Link from "next/link"
 
 interface ProductDisplayProps {
   initialProduct: Product | null
@@ -71,7 +72,7 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Product Details</CardTitle>
+        <CardTitle>{product.model_3d_url && "3D"} Product Details </CardTitle>
         <div className="flex gap-2">
           <EditProductButton product={product} onSuccess={handleProductUpdate} />
           <AlertDialog>
@@ -113,6 +114,31 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
           </div>
         )}
       </CardContent>
+       {product.model_3d_url && (
+  <div className="mt-2 flex justify-end gap-2">
+    <Link
+      href={`/model3DViewer?modelurl=${encodeURIComponent(product.model_3d_url)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 px-4 py-2 rounded-md bg-blue-700 text-white font-semibold shadow hover:from-blue-700 hover:bg-cyan-800 transition"
+    >
+      <Cuboid className="w-4 h-4" />
+      View Model
+    </Link>
+    <a
+      href={product.model_3d_url}
+      download
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 transition"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+      </svg>
+      
+    </a>
+  </div>
+)}
     </Card>
   )
 } 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AddProductButton } from "@/components/add-product-button"
 import { ProductSearch } from "@/components/product-search"
 import { ProductDisplay } from "@/components/product-display"
+import Link from "next/link"
 import dynamic from "next/dynamic"
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
@@ -99,7 +100,8 @@ async function ProductsDashboardContent({ searchParams }: PageProps) {
     }
 
     const { products, totalCount }: ProductsResult = await response.json()
-
+    console.log('Fetched products:', products);
+    
     if (products.length === 0) {
       return (
         <Card>
@@ -115,8 +117,10 @@ async function ProductsDashboardContent({ searchParams }: PageProps) {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {products.map((product) => (
-          <ProductDisplay key={product._id} initialProduct={product} />
+                {products.map((product) => (
+          
+            <ProductDisplay initialProduct={product} />
+            
         ))}
       </div>
     )

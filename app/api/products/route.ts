@@ -23,6 +23,7 @@ export interface Product {
   discount_type?: string
   ar_brand?: string
   en_brand?: string
+  model_3d_url?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
       ar_name: 1,
       sku: 1,
       price: 1,
+      model_3d_url: 1,
     }
     }
     else{
@@ -100,6 +102,7 @@ export async function GET(request: NextRequest) {
       ar_brand: 1,
       en_brand: 1,
       barcode: 1,
+      model_3d_url: 1,
     }
     }
    
