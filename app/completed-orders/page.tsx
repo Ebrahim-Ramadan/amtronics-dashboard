@@ -239,7 +239,7 @@ export default function CompletedOrdersDashboard({ searchParams }: PageProps) {
           <div className="flex items-center gap-2 md:gap-4">
             {/* Dropdown Menu */}
             <Topleftmenu/>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Completed Orders Dashboard</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Completed Orders</h1>
           </div>
 
           {/* Search, Sort, and Logout */}

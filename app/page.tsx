@@ -282,7 +282,7 @@ export default function OrdersDashboard({ searchParams }: PageProps) {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Pending Orders Dashboard</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Pending Orders</h1>
           </div>
           <SearchAndSort />
         </div>
