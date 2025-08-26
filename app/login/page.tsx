@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { RedirectType, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -33,7 +33,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         // Redirect to dashboard on success
-        router.push("/")
+        router.replace("/")
       } else {
         const data = await response.json()
         setError(data.message || "Login failed")
@@ -48,10 +48,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex px-2 gap-4 w-full h-[90vh] items-center flex-col justify-center bg-gray-100">
+    <div className="flex px-2 gap-4 w-full h-[90vh] items-center flex-col justify-center ">
     <img
           src='/amtronics-logo.webp'
-          className="mx-auto"
+          className="mx-auto h-24"
           alt="Amtronics Logo"
           // width={100}
           // height={100}
