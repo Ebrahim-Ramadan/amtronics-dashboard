@@ -49,12 +49,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex px-2 gap-4 w-full h-[90vh] items-center flex-col justify-center bg-gray-100">
-    <Image
+    <img
           src='/amtronics-logo.webp'
           className="mx-auto"
           alt="Amtronics Logo"
-          width={100}
-          height={100}
+          // width={100}
+          // height={100}
           />
       <Card className="w-full md:w-[350px]">
        <CardHeader>

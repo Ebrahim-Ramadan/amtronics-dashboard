@@ -212,11 +212,11 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Pending Orders</CardTitle>
-              <Image
+              <img
                 src="/statistics.svg"
                 alt="Statistics"
-                width={24}
-                height={24}
+                // width={24}
+                // height={24}
               />
             </CardHeader>
             <CardContent>
