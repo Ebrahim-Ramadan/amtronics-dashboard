@@ -46,8 +46,8 @@ function ThreeJSViewer({ url }: { url: string }) {
       scene.add(light);
 
       // Mouse interaction: highlight on hover
-      let raycaster = new THREE.Raycaster();
-      let mouse = new THREE.Vector2();
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
       let INTERSECTED: any = null;
 
       function onPointerMove(event: MouseEvent) {
