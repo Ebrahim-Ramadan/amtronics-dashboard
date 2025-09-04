@@ -12,6 +12,7 @@ const Topleftmenu = dynamicImport(() => import('@/components/top-left-menu'))
 interface ProductRef {
   id: string;
   name?: string;
+  quantity?: number; // Add quantity field
 }
 
 interface Engineer {
@@ -39,16 +40,15 @@ async function fetchProjectsFromDB(): Promise<Project[]> {
 }
 
 export default async function ProjectsPage() {
-  // Add cache control headers to prevent caching
   const projects = await fetchProjectsFromDB();
 
   return (
     <div className="min-h-screen w-full  p-2 md:p-6 ">
       <div className="flex items-center justify-between mb-6">
          <div className="flex items-center gap-2 md:gap-4">
-                    <Topleftmenu/>
-                    <h1 className="text-xl md:text-3xl font-bold text-gray-900">Projects Dashboard</h1>
-                  </div>
+            <Topleftmenu/>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Projects Dashboard</h1>
+         </div>
         <AddProjectForm />
       </div>
 
@@ -59,11 +59,8 @@ export default async function ProjectsPage() {
           <Card key={project._id} className="mb-6">
             <CardHeader className="flex justify-between items-center">
               <CardTitle>{project.name}</CardTitle>
-              {/* Pass project to client component for editing */}
               <ProjectEditModal project={project} />
-
             </CardHeader>
-
             <CardContent>
               {project.engineers.map((eng, idx) => (
                 <div key={idx} className="mb-4">
@@ -80,6 +77,9 @@ export default async function ProjectsPage() {
                           <th className="text-left px-3 py-1 border-b border-gray-300">
                             Product Name
                           </th>
+                          <th className="text-left px-3 py-1 border-b border-gray-300">
+                            Quantity
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -87,6 +87,7 @@ export default async function ProjectsPage() {
                           <tr key={i} className="border-b border-gray-200">
                             <td className="px-3 py-1">{item.id}</td>
                             <td className="px-3 py-1">{item.name || 'N/A'}</td>
+                            <td className="px-3 py-1">{item.quantity ?? 1}</td>
                           </tr>
                         ))}
                       </tbody>

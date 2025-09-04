@@ -23,6 +23,7 @@ const ENGINEER_OPTIONS = [
 interface ProductRef {
   id: string;
   name?: string;
+  quantity?: number; // <-- Add quantity field
 }
 
 interface Product {
@@ -43,7 +44,7 @@ export default function AddProjectForm() {
   const [form, setForm] = useState({
     name: "",
     engineers: [
-      { name: "Ahmed", bundle: [{ id: "", name: "" }] },
+      { name: "", bundle: [{ id: "", name: "", quantity: 1 }] }, // <-- Start with empty name
     ],
   });
   const [submitting, setSubmitting] = useState(false);
@@ -78,10 +79,10 @@ export default function AddProjectForm() {
     if (typeof idx === "number" && typeof bundleIdx === "number" && field) {
       // Product bundle field
       const newEngineers = [...form.engineers];
-      if (field === "id") {
+      if (field === "id" || field === "name") {
         newEngineers[idx].bundle[bundleIdx][field] = e.target.value;
-      } else if (field === "name") {
-        newEngineers[idx].bundle[bundleIdx][field] = e.target.value;
+      } else if (field === "quantity") {
+        newEngineers[idx].bundle[bundleIdx].quantity = Number(e.target.value) || 1;
       }
       setForm({ ...form, engineers: newEngineers });
     } else {
@@ -154,13 +155,12 @@ export default function AddProjectForm() {
   };
 
   function addEngineer() {
-    // Cycle through icons for new engineers
     const nextName = ENGINEER_OPTIONS[form.engineers.length % ENGINEER_OPTIONS.length].value;
     setForm({
       ...form,
       engineers: [
         ...form.engineers,
-        { name: nextName, bundle: [{ id: "", name: "" }] },
+        { name: nextName, bundle: [{ id: "", name: "", quantity: 1 }] }, // <-- Add quantity default
       ],
     });
   }
@@ -172,7 +172,7 @@ export default function AddProjectForm() {
   }
   function addBundle(idx: number) {
     const newEngineers = [...form.engineers];
-    newEngineers[idx].bundle.push({ id: "", name: "" });
+    newEngineers[idx].bundle.push({ id: "", name: "", quantity: 1 }); // <-- Add quantity default
     setForm({ ...form, engineers: newEngineers });
   }
   function removeBundle(idx: number, bundleIdx: number) {
@@ -194,13 +194,19 @@ export default function AddProjectForm() {
       });
       if (!res.ok) throw new Error("Failed to add project");
       setOpen(false);
-      setForm({ name: "", engineers: [{ name: "Ahmed", bundle: [{ id: "", name: "" }] }] });
+      setForm({ name: "", engineers: [{ name: "Ahmed", bundle: [{ id: "", name: "", quantity: 1 }] }] });
       startTransition(() => router.refresh());
     } catch (err) {
       setError("Failed to add project");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleEngineerNameChange(e: React.ChangeEvent<HTMLInputElement>, idx: number) {
+    const newEngineers = [...form.engineers];
+    newEngineers[idx].name = e.target.value;
+    setForm({ ...form, engineers: newEngineers });
   }
 
   return (
@@ -224,26 +230,19 @@ export default function AddProjectForm() {
             />
           </div>
           {form.engineers.map((eng, idx) => {
-            const Icon = ENGINEER_OPTIONS.find(opt => opt.value === eng.name)?.icon || User;
             return (
               <div key={idx} className="border rounded p-2 mb-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
-                    <Icon className="w-5 h-5 text-blue-500" />
-                    <Label htmlFor={`engineer-name-${idx}`} className="font-semibold">Engineer</Label>
-                    <Select value={eng.name} onValueChange={value => handleEngineerSelect(value, idx)}>
-                      <SelectTrigger id={`engineer-name-${idx}`} className="w-full sm:max-w-56">
-                        <SelectValue placeholder="Select engineer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ENGINEER_OPTIONS.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value} className="flex items-center gap-2">
-                            <opt.icon className="w-4 h-4 mr-1 inline-block text-blue-400" />
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor={`engineer-name-${idx}`} className="font-semibold">Engineer Name</Label>
+                    <Input
+                      id={`engineer-name-${idx}`}
+                      className="w-full sm:max-w-56"
+                      placeholder="Type engineer name"
+                      value={eng.name}
+                      onChange={e => handleEngineerNameChange(e, idx)}
+                      required
+                    />
                   </div>
                   <Button type="button" variant="destructive" size="sm" onClick={() => removeEngineer(idx)} disabled={form.engineers.length === 1} className="w-full sm:w-auto mt-2 sm:mt-0">Remove <X/></Button>
                 </div>
@@ -262,7 +261,7 @@ export default function AddProjectForm() {
                               onChange={(e) => handleProductSearch(e.target.value, idx, bundleIdx)}
                               required
                             />
-                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute bg-white right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                             
                             {/* Search Results Dropdown */}
                             {showDropdown[searchKey] && (
@@ -293,6 +292,15 @@ export default function AddProjectForm() {
                               </div>
                             )}
                           </div>
+                          {/* Quantity input */}
+                          <Input
+                            type="number"
+                            min={1}
+                            className="w-20"
+                            value={item.quantity ?? 1}
+                            onChange={(e) => handleFormChange(e, idx, bundleIdx, "quantity")}
+                            placeholder="Qty"
+                          />
                           <Button 
                             type="button" 
                             variant="destructive" 
@@ -342,4 +350,4 @@ export default function AddProjectForm() {
       </DialogContent>
     </Dialog>
   );
-} 
+}
