@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select } from "@/components/ui/select"
 import { useTransition } from "react"
 import { toast } from "sonner"
 import { Product } from "@/app/products/page"
@@ -33,30 +34,26 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
       [id]:
         id === "price" ||
         id === "quantity_on_hand" ||
-        id === "barcode" ||
         id === "id" ||
         id === "sold_quantity" ||
         id === "visible_in_catalog" ||
         id === "visible_in_search" ||
-        id === "discount"
-          ? Number(value) // Convert to number for numeric fields
+        id === "discount" ||
+        id === "sell_this" ||
+        id === "buy_this" ||
+        id === "ave_cost" ||
+        id === "enable_quantity_in_store"
+          ? Number(value)
           : id === "is_3d"
-          ? (e.target as HTMLInputElement).checked // Handle checkbox
+          ? (e.target as HTMLInputElement).checked
           : value,
     }))
-
-    // Auto-set 3D flag when 3D categories are selected
-    if (id === "en_category" || id === "ar_category") {
-      const is3DCategory = value === "3D Print" || value === "custom-3D"
-      setFormData(prev => ({ ...prev, is_3d: is3DCategory }))
-    }
   }
 
   const handle3DFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setSelected3DFile(file)
-      // Clear the URL field when a new file is selected
       setFormData(prev => ({ ...prev, model_3d_url: "" }))
     }
   }
@@ -104,36 +101,20 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
       toast.error("Arabic Name is required.")
       return
     }
-    if (!formData.en_main_category.trim()) {
-      toast.error("English Main Category is required.")
-      return
-    }
-    if (!formData.ar_main_category.trim()) {
-      toast.error("Arabic Main Category is required.")
-      return
-    }
     if (!formData.en_category.trim()) {
       toast.error("English Category is required.")
-      return
-    }
-    if (!formData.ar_category.trim()) {
-      toast.error("Arabic Category is required.")
       return
     }
     if (!formData.price || formData.price <= 0) {
       toast.error("Price must be a positive number.")
       return
     }
-    if (!formData.quantity_on_hand || formData.quantity_on_hand <= 0) {
-      toast.error("Quantity on Hand must be a positive number.")
+    if (formData.quantity_on_hand === undefined || formData.quantity_on_hand === null) {
+      toast.error("Quantity on Hand is required.")
       return
     }
-    if (!formData.sold_quantity || formData.sold_quantity < 0) {
+    if (formData.sold_quantity === undefined || formData.sold_quantity < 0) {
       toast.error("Sold Quantity must be a non-negative number.")
-      return
-    }
-    if (!formData.slug_url.trim()) {
-      toast.error("Slug URL is required.")
       return
     }
     if (formData.visible_in_catalog === undefined || formData.visible_in_catalog < 0) {
@@ -197,10 +178,6 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         <Input id="id" type="number" value={formData.id} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="barcode" className="text-right">Barcode</Label>
-        <Input id="barcode" type="number" value={formData.barcode} onChange={handleChange} className="col-span-3" disabled={isPending} />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="sku" className="text-right">SKU</Label>
         <Input id="sku" value={formData.sku} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
@@ -217,10 +194,6 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         <Textarea id="en_description" value={formData.en_description} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="ar_description" className="text-right">Arabic Description</Label>
-        <Textarea id="ar_description" value={formData.ar_description} onChange={handleChange} className="col-span-3" disabled={isPending} />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="en_long_description" className="text-right">English Long Description</Label>
         <Textarea id="en_long_description" value={formData.en_long_description} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
@@ -229,52 +202,27 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         <Textarea id="ar_long_description" value={formData.ar_long_description} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="en_main_category" className="text-right">English Main Category</Label>
+        <Label htmlFor="en_category" className="text-right">English Category</Label>
+        {/* <Select
+          id="en_category"
+          value={formData.en_category}
+          onValueChange={value => setFormData(prev => ({ ...prev, en_category: value }))}
+          disabled={isPending}
+        >
+          <option value="">Select category</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </Select> */}
         <select 
           id="en_main_category" 
-          value={formData.en_main_category} 
-          onChange={handleChange} 
-          className="col-span-3 border rounded px-3 py-2" 
-          required 
-          disabled={isPending}
-        >
-          <option value="">Select Main Category</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="ar_main_category" className="text-right">Arabic Main Category</Label>
-        <select 
-          id="ar_main_category" 
-          value={formData.ar_main_category} 
-          onChange={handleChange} 
-          className="col-span-3 border rounded px-3 py-2" 
-          required 
-          disabled={isPending}
-        >
-          <option value="">Select Main Category</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="en_category" className="text-right">English Category</Label>
-        <select 
-          id="en_category" 
           value={formData.en_category} 
           onChange={handleChange} 
           className="col-span-3 border rounded px-3 py-2" 
           required 
           disabled={isPending}
         >
-          <option value="">Select Category</option>
+          <option value="">Select Main Category</option>
           {categories.map((category) => (
             <option key={category} value={category}>
               {category}
@@ -282,89 +230,6 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
           ))}
         </select>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="ar_category" className="text-right">Arabic Category</Label>
-        <select 
-          id="ar_category" 
-          value={formData.ar_category} 
-          onChange={handleChange} 
-          className="col-span-3 border rounded px-3 py-2" 
-          required 
-          disabled={isPending}
-        >
-          <option value="">Select Category</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-      </div>
-      
-      {/* 3D Category Option */}
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="is_3d" className="text-right">3D Product</Label>
-        <div className="col-span-3 flex items-center gap-2">
-          <input
-            id="is_3d"
-            type="checkbox"
-            checked={formData.is_3d || false}
-            onChange={handleChange}
-            disabled={isPending}
-            className="h-4 w-4"
-          />
-          <span className="text-sm text-gray-600">This is a 3D printable product</span>
-        </div>
-      </div>
-
-      {/* 3D Model Upload */}
-      {formData.is_3d && (
-        <>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="3d_file" className="text-right">3D Model File</Label>
-            <div className="col-span-3">
-              <Input
-                id="3d_file"
-                type="file"
-                accept=".glb,.gltf,.obj,.fbx,.stl,.3ds,.dae"
-                onChange={handle3DFileSelect}
-                disabled={isPending || uploading3D}
-                className="col-span-3"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Supported formats: GLB, GLTF, OBJ, FBX, STL, 3DS, DAE
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="model_3d_url" className="text-right">Or 3D Model URL</Label>
-            <Input 
-              id="model_3d_url" 
-              value={formData.model_3d_url || ""} 
-              onChange={handleChange} 
-              placeholder="Or enter 3D model URL directly"
-              className="col-span-3" 
-              disabled={isPending} 
-            />
-          </div>
-          {formData.model_3d_url && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Current 3D Model</Label>
-              <div className="col-span-3">
-                <a 
-                  href={formData.model_3d_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-sm"
-                >
-                  View Current 3D Model
-                </a>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="price" className="text-right">Price</Label>
         <Input id="price" type="number" value={formData.price} onChange={handleChange} className="col-span-3" required disabled={isPending} />
@@ -375,7 +240,7 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="quantity_on_hand" className="text-right">Quantity on Hand</Label>
-        <Input id="quantity_on_hand" type="number" value={formData.quantity_on_hand} onChange={handleChange} className="col-span-3" required disabled={isPending} />
+        <Input id="quantity_on_hand" type="number" value={formData.quantity_on_hand ?? ""} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="sold_quantity" className="text-right">Sold Quantity</Label>
@@ -389,25 +254,47 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         <Label htmlFor="visible_in_search" className="text-right">Visible in Search</Label>
         <Input id="visible_in_search" type="number" value={formData.visible_in_search} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="slug_url" className="text-right">Slug URL</Label>
-        <Input id="slug_url" value={formData.slug_url} onChange={handleChange} className="col-span-3" required disabled={isPending} />
-      </div>
+      {/* Optional fields */}
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="discount" className="text-right">Discount (Optional)</Label>
-        <Input id="discount" type="number" value={formData.discount || ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
+        <Input id="discount" type="number" value={formData.discount ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="discount_type" className="text-right">Discount Type (Optional)</Label>
-        <Input id="discount_type" value={formData.discount_type} onChange={handleChange} className="col-span-3" disabled={isPending} />
+        <Label htmlFor="is_3d" className="text-right">3D Product</Label>
+        <input
+          id="is_3d"
+          type="checkbox"
+          checked={formData.is_3d || false}
+          onChange={handleChange}
+          disabled={isPending}
+          className="h-4 w-4"
+        />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="ar_brand" className="text-right">Arabic Brand (Optional)</Label>
-        <Input id="ar_brand" value={formData.ar_brand} onChange={handleChange} className="col-span-3" disabled={isPending} />
+        <Label htmlFor="model_3d_url" className="text-right">3D Model URL</Label>
+        <Input
+          id="model_3d_url"
+          value={formData.model_3d_url || ""}
+          onChange={handleChange}
+          className="col-span-3"
+          disabled={isPending}
+        />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="en_brand" className="text-right">English Brand (Optional)</Label>
-        <Input id="en_brand" value={formData.en_brand} onChange={handleChange} className="col-span-3" disabled={isPending} />
+        <Label htmlFor="sell_this" className="text-right">Sell This (Optional)</Label>
+        <Input id="sell_this" type="number" value={formData.sell_this ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="buy_this" className="text-right">Buy This (Optional)</Label>
+        <Input id="buy_this" type="number" value={formData.buy_this ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="ave_cost" className="text-right">Average Cost (Optional)</Label>
+        <Input id="ave_cost" type="number" value={formData.ave_cost ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="enable_quantity_in_store" className="text-right">Enable Quantity In Store (Optional)</Label>
+        <Input id="enable_quantity_in_store" type="number" value={formData.enable_quantity_in_store ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <Button type="submit" disabled={isPending || uploading3D}>
         {isPending ? "Updating Product..." : "Update Product"}
@@ -417,4 +304,4 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
       </Button>
     </form>
   )
-} 
+}

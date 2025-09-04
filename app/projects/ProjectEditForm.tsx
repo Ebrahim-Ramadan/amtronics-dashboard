@@ -25,6 +25,7 @@ import { Edit, XIcon, Plus, Search, Loader2 } from "lucide-react";
 interface ProductRef {
   id: string;
   name?: string;
+  quantity?: number; // <-- Add quantity field
 }
 
 interface Product {
@@ -62,7 +63,15 @@ export function ProjectEditModal({ project }: ProjectEditModalProps) {
   const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState(project.name);
-  const [engineers, setEngineers] = useState<Engineer[]>(project.engineers);
+  const [engineers, setEngineers] = useState<Engineer[]>(
+    project.engineers.map(eng => ({
+      ...eng,
+      bundle: eng.bundle.map(prod => ({
+        ...prod,
+        quantity: prod.quantity ?? 1, // Default to 1 if not present
+      })),
+    }))
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,6 +108,17 @@ export function ProjectEditModal({ project }: ProjectEditModalProps) {
       id: value,
       name: updated[engIndex].bundle[prodIndex].name,
     };
+    setEngineers(updated);
+  };
+
+  // Add quantity input handler
+  const handleProductQuantityChange = (
+    engIndex: number,
+    prodIndex: number,
+    value: string
+  ) => {
+    const updated = [...engineers];
+    updated[engIndex].bundle[prodIndex].quantity = Number(value) || 1;
     setEngineers(updated);
   };
 
@@ -158,8 +178,8 @@ export function ProjectEditModal({ project }: ProjectEditModalProps) {
     const searchKey = `${engineerIdx}-${bundleIdx}`;
     const updated = [...engineers];
     
-    updated[engineerIdx].bundle[bundleIdx].id = product._id.toString();
-    updated[engineerIdx].bundle[bundleIdx].name = product.en_name;
+    updated[engineIdx].bundle[bundleIdx].id = product._id.toString();
+    updated[engineIdx].bundle[bundleIdx].name = product.en_name;
     
     setEngineers(updated);
     setProductSearch(prev => ({ ...prev, [searchKey]: product.en_name }));
@@ -352,7 +372,7 @@ setLoading(true);
                             onChange={(e) => handleProductSearch(e.target.value, engIdx, prodIdx)}
                             required
                           />
-                          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Search className="bg-white absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                           
                           {/* Search Results Dropdown */}
                           {showDropdown[searchKey] && (
@@ -383,6 +403,15 @@ setLoading(true);
                             </div>
                           )}
                         </div>
+                        {/* Quantity input */}
+                        <Input
+                          type="number"
+                          min={1}
+                          className="w-20"
+                          value={prod.quantity ?? 1}
+                          onChange={e => handleProductQuantityChange(engIdx, prodIdx, e.target.value)}
+                          placeholder="Qty"
+                        />
                         <Button
                           type="button"
                           variant="destructive"

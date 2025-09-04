@@ -97,9 +97,7 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div><strong>Databse ID:</strong> {product._id}</div>
         <div>ID: {product.id}</div>
-        <div><strong>Barcode:</strong> {product.barcode}</div>
         <div><strong>SKU:</strong> {product.sku}</div>
         <div><strong>English Name:</strong> {product.en_name}</div>
         <div><strong>Arabic Name:</strong> {product.ar_name}</div>

@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+
+# ass
+app/ass
+app/api/ass
+
 # testing
 /coverage
 

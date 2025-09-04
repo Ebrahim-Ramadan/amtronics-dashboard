@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AddProductButton } from "@/components/add-product-button"
 import { ProductSearch } from "@/components/product-search"
 import { ProductDisplay } from "@/components/product-display"
-import Link from "next/link"
 import dynamic from "next/dynamic"
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
@@ -15,27 +14,22 @@ export interface Product {
   en_name: string
   ar_name: string
   en_description: string
-  ar_description: string
   en_long_description: string
   ar_long_description: string
-  en_main_category: string
-  ar_main_category: string
   en_category: string
-  ar_category: string
   price: number
   image: string
-  quantity_on_hand: number
+  quantity_on_hand: number | null
   sold_quantity: number
   visible_in_catalog: number
   visible_in_search: number
-  slug_url: string
   discount?: number
-  discount_type?: string
-  ar_brand?: string
-  en_brand?: string
-  barcode?: number // Optional field for barcode
   is_3d?: boolean
   model_3d_url?: string
+  sell_this?: number
+  buy_this?: number
+  ave_cost?: number
+  enable_quantity_in_store?: number
 }
 
 interface ProductsResult {
@@ -165,4 +159,4 @@ export default function ProductsDashboard({ searchParams }: PageProps) {
       </div>
     </div>
   )
-} 
+}

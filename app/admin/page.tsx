@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import dynamic from "next/dynamic";
+
 
 // User type
 type User = {
@@ -11,6 +13,8 @@ type User = {
   role: "admin" | "engineer" | "user" | "sub";
   active?: boolean;
 };
+// Dynamically import the top left menu
+const Topleftmenu = dynamic(() => import('@/components/top-left-menu'));
 
 export default function AdminManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -111,8 +115,9 @@ export default function AdminManagementPage() {
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
         <div className="flex items-center gap-2 md:gap-4 mb-4">
+          <Topleftmenu />
           <h1 className="text-xl md:text-3xl font-bold text-gray-900">
-            Admin & Engineer Management
+            Administration
           </h1>
         </div>
         <div>
@@ -161,7 +166,7 @@ export default function AdminManagementPage() {
           {error && <div className="text-red-500 mb-2">{error}</div>}
           <h2 className="text-lg font-bold mb-2">Manage Users & Roles</h2>
           {userLoading && <div>Loading users...</div>}
-          <div className="overflow-x-auto rounded shadow border bg-white">
+          <div className="overflow-x-auto overflow-y-hidden rounded shadow border bg-white">
             <table className="min-w-full text-xs md:text-sm">
               <thead>
                 <tr className="bg-gray-100">
