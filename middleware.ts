@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
 
   // Define protected paths and role-based rules
   const protectedPaths = ['/analytics', '/projects', '/products', '/customers', '/orders']
-  const adminOnlyPaths = ['/admin', '/api/users']
+  const adminOnlyPaths = [ '/api/users']
 
   // Redirect authenticated users from login page to dashboard
   if (request.nextUrl.pathname === '/login' && isAuthenticated) {

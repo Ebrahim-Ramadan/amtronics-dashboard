@@ -134,8 +134,7 @@ export const Topleftmenu = () => {
             Analytics
           </Link>
         </DropdownMenuItem>
-        {role === 'admin' && (
-          <DropdownMenuItem asChild>
+        <DropdownMenuItem asChild>
             <Link
               href="/admin"
               className={cn(
@@ -148,7 +147,6 @@ export const Topleftmenu = () => {
               Admin Management
             </Link>
           </DropdownMenuItem>
-        )}
         <DropdownMenuItem asChild>
           <Link
             href="/customers"

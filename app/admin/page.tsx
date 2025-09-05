@@ -3,16 +3,24 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
-
+import { Eye, EyeOff } from "lucide-react";
 
 // User type
 type User = {
   _id: string;
   name: string;
   email: string;
-  role: "admin" | "engineer" | "user" | "sub";
+  role: "admin" | "engineer" | "sub";
   active?: boolean;
 };
+
+type Project = {
+  _id: string;
+  name: string;
+  quantities_sold?: number;
+  engineers: { name: string; email: string }[];
+};
+
 // Dynamically import the top left menu
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'));
 
@@ -21,9 +29,28 @@ export default function AdminManagementPage() {
   const [userLoading, setUserLoading] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<User["role"]>("user");
+  const [role, setRole] = useState<User["role"]>("engineer");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // For engineer's projects
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [session, setSession] = useState<User | null>(null);
+  const [highlightedUserId, setHighlightedUserId] = useState<string | null>(null);
+
+  // Fetch session/user info
+  useEffect(() => {
+    async function fetchSession() {
+      const res = await fetch("/api/session");
+      if (res.ok) {
+        const data = await res.json();
+        console.log('data', data);
+        setSession(data.user || null);
+      }
+    }
+    fetchSession();
+  }, []);
 
   // Fetch users
   useEffect(() => {
@@ -36,7 +63,32 @@ export default function AdminManagementPage() {
       const res = await fetch("/api/users");
       if (res.ok) {
         const data = await res.json();
-        setUsers(data.users || []);
+        // Sort users by _id (assuming ObjectId, latest first)
+        const sorted = [...(data.users || [])].sort((a, b) =>
+          b._id.localeCompare(a._id)
+        );
+        setUsers(sorted);
+      }
+    } finally {
+      setUserLoading(false);
+    }
+  }
+
+  // Fetch projects for engineer
+  useEffect(() => {
+    
+    if (session?.role === "engineer") {
+      fetchEngineerProjects(session.email);
+    }
+  }, [session]);
+
+  async function fetchEngineerProjects(email: string) {
+    setUserLoading(true);
+    try {
+      const res = await fetch(`/api/projects?engineerEmail=${encodeURIComponent(email)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProjects(data.projects || []);
       }
     } finally {
       setUserLoading(false);
@@ -61,11 +113,14 @@ export default function AdminManagementPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setUsers((prev) => [...prev, data.user]);
+        setUsers((prev) => [data.user, ...prev]);
+        setHighlightedUserId(data.user._id);
         setName("");
         setEmail("");
         setPassword("");
-        setRole("user");
+        setRole("engineer");
+        // Remove highlight after 2 seconds
+        setTimeout(() => setHighlightedUserId(null), 2000);
       } else {
         const err = await res.json();
         setError(err.error || "Failed to add user");
@@ -111,6 +166,51 @@ export default function AdminManagementPage() {
     }
   }
 
+  // If engineer, show only their projects
+  if (session?.role === "engineer") {
+    return (
+      <div className="min-h-screen bg-gray-50 p-2 md:p-6">
+        <div className="w-full mx-auto space-y-6">
+          <div className="flex items-center gap-2 md:gap-4 mb-4">
+            <Topleftmenu />
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">
+              My Projects
+            </h1>
+          </div>
+          {userLoading && <div>Loading projects...</div>}
+          <div className="overflow-x-auto overflow-y-hidden rounded shadow border bg-white">
+            <table className="min-w-full text-xs md:text-sm">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="px-2 py-2 text-left">Project Name</th>
+                  <th className="px-2 py-2 text-left">Quantities Sold</th>
+                  <th className="px-2 py-2 text-left">Engineers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projects.map((p) => (
+                  <tr key={p._id} className="border-t hover:bg-gray-50">
+                    <td className="px-2 py-2 break-all max-w-[120px]">{p.name}</td>
+                    <td className="px-2 py-2">{p.quantities_sold ?? 0}</td>
+                    <td className="px-2 py-2">
+                      {p.engineers.map((e) => (
+                        <div key={e.email}>{e.name} ({e.email})</div>
+                      ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {projects.length === 0 && (
+              <div className="p-4 text-gray-500">No projects found for you.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default: admin management
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
@@ -134,6 +234,8 @@ export default function AdminManagementPage() {
               required
             />
             <input
+            autoCorrect="off"
+            autoComplete="off"
               className="border px-2 py-1 rounded flex-1 min-w-0"
               placeholder="Email"
               type="email"
@@ -141,20 +243,31 @@ export default function AdminManagementPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <input
-              className="border px-2 py-1 rounded flex-1 min-w-0"
-              placeholder="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative flex-1 min-w-0">
+              <input
+            autoComplete="off"
+            autoCorrect="off"
+                className="border px-2 py-1 rounded w-full pr-10"
+                placeholder="Password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             <select
               className="border px-2 py-1 rounded flex-1 min-w-0"
               value={role}
               onChange={(e) => setRole(e.target.value as User["role"])}
             >
-              <option value="user">User</option>
               <option value="engineer">Engineer</option>
               <option value="admin">Admin</option>
               <option value="sub">Sub</option>
@@ -179,7 +292,12 @@ export default function AdminManagementPage() {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u._id} className="border-t hover:bg-gray-50">
+                  <tr
+                    key={u._id}
+                    className={`border-t hover:bg-gray-50 transition-colors ${
+                      highlightedUserId === u._id ? "bg-yellow-200" : ""
+                    }`}
+                  >
                     <td className="px-2 py-2 break-all max-w-[120px]">{u.name}</td>
                     <td className="px-2 py-2 break-all max-w-[180px]">{u.email}</td>
                     <td className="px-2 py-2 capitalize">{u.role}</td>
@@ -195,11 +313,11 @@ export default function AdminManagementPage() {
                           Make Engineer
                         </Button>
                       )}
-                      {u.role !== "user" && (
+                      {/* {u.role !== "user" && (
                         <Button size="sm" onClick={() => changeRole(u._id, "user")}>
                           Make User
                         </Button>
-                      )}
+                      )} */}
                       <Button size="sm" variant="destructive" onClick={() => removeUser(u._id)}>
                         Remove
                       </Button>

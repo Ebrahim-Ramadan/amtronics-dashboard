@@ -47,27 +47,41 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-// GET: List all projects
+// GET: List all projects, filter by engineerEmail if provided
 export async function GET(request: NextRequest) {
   try {
     const client = await clientPromise;
     const db = client.db("amtronics");
     const collection = db.collection("projects");
-    // Only return id, name, engineers, and for each engineer, bundle with id, name, image, price
-    const projects = await collection.find({}, {
+
+    // Get engineerEmail from query params
+    const { searchParams } = new URL(request.url);
+    const engineerEmail = searchParams.get("engineerEmail");
+
+    let query: any = {};
+    if (engineerEmail) {
+      query = {
+        engineers: {
+          $elemMatch: { email: engineerEmail }
+        }
+      };
+    }
+
+    // Only return id, name, engineers, quantities_sold
+    const projects = await collection.find(query, {
       projection: {
         _id: 1,
         name: 1,
         engineers: 1,
+        quantities_sold: 1,
       }
     }).toArray();
-    
+console.log('Fetched projects:', projects);
+
     const response = NextResponse.json({ projects });
-    // Add no-cache headers
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
-    
     return response;
   } catch (error) {
     console.error("Error fetching projects:", error);

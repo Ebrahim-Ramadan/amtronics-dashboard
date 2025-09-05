@@ -2,7 +2,7 @@ import crypto from "crypto"
 import type { SessionData, Role } from "./types"
 
 const SESSION_COOKIE_NAME = "session"
-const DEFAULT_TTL_SECONDS = 60 * 60 * 24 // 1 day
+const DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 days
 
 function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET
