@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from 'mongodb'
 
+function escapeRegex(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 // Interface for Product (should match the one in app/products/page.tsx)
 export interface Product {
   _id?: string // MongoDB ObjectId
@@ -51,15 +54,16 @@ export async function GET(request: NextRequest) {
     //   ];
     // }
     if (search) {
-      query.$or = [
-        { "en_name": { $regex: search, $options: "i" } },
-        { "ar_name": { $regex: search, $options: "i" } },
-        { "sku": { $regex: search, $options: "i" } },
-        { "barcode": Number(search) || 0 },
-        { "_id": /^[0-9a-fA-F]{24}$/.test(search) ? new ObjectId(search) : null }, // Only apply if valid ObjectId
-        { "id": Number(search) }, // Match exact Int32
-      ].filter(Boolean); // Filter out null values for _id
-    }
+      const safeSearch = escapeRegex(search);
+  query.$or = [
+    { "en_name": { $regex: safeSearch, $options: "i" } },
+    { "ar_name": { $regex: safeSearch, $options: "i" } },
+    { "sku": { $regex: safeSearch, $options: "i" } },
+    { "barcode": Number(search) || 0 },
+    { "_id": /^[0-9a-fA-F]{24}$/.test(search) ? new ObjectId(search) : null },
+    { "id": Number(search) },
+  ].filter(Boolean);
+}
     const skip = (page - 1) * limit
 
     // Define projection to only include specific product fields
