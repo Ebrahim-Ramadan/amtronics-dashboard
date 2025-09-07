@@ -61,8 +61,8 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
     quantity_on_hand: 0,
     sku: "",
     sold_quantity: 0,
-    visible_in_catalog: 0,
-    visible_in_search: 0,
+    visible_in_catalog: 1, // changed default
+    visible_in_search: 1,
     discount: 0,
     is_3d: false,
     model_3d_url: "",
