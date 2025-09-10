@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Eye,  Download } from "lucide-react";
+import { Loader2, Eye,  Download, ArrowRight, ArrowLeft, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -128,7 +128,7 @@ export default function CustomersPage() {
               className="ml-2"
               disabled={loading}
             >
-              <Download/>
+              <Upload/>
               Export
             </Button>
           </div>
@@ -217,10 +217,10 @@ export default function CustomersPage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1 || loading}
               >
-                Previous
+                <ArrowLeft />
               </Button>
-              <span className="text-sm">
-                Page {page} of {totalPages}
+              <span className="text-sm font-normal">
+                Page <span className="font-semibold">{page}</span> of <span className="font-semibold">{totalPages}</span>
               </span>
               <Button
                 variant="outline"
@@ -228,7 +228,7 @@ export default function CustomersPage() {
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages || loading}
               >
-                Next
+                <ArrowRight />
               </Button>
             </div>
           </CardContent>

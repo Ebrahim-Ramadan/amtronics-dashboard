@@ -47,7 +47,7 @@ export default async function ProjectsPage() {
       <div className="flex items-center justify-between mb-6">
          <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu/>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Projects Dashboard</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Projects</h1>
          </div>
         <AddProjectForm />
       </div>

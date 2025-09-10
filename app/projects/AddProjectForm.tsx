@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, UserCog, UserCheck, X, Plus, XIcon, Search } from "lucide-react";
+import { Loader2, User, UserCog, UserCheck, X, Plus, XIcon, Search, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -211,10 +211,10 @@ export default function AddProjectForm() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button onClick={() => setOpen(true)}>Add Project</Button>
+      <Button onClick={() => setOpen(true)}>+ Add Project</Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Project</DialogTitle>
+          <DialogTitle> Add Project</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="text-red-500 mb-2">{error}</div>}

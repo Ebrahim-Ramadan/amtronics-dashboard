@@ -293,7 +293,7 @@ setLoading(true);
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" aria-label={`Edit project ${project.name}`}>
-          <Edit className="h-5 w-5" />
+          <Edit className="h-5 w-5" /> Edit
         </Button>
 
       </DialogTrigger>

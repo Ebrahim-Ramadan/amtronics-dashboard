@@ -297,10 +297,10 @@ export default function AnalyticsPage() {
         
          <LazyLoad>
         
-   <div className="flex flex-col md:flex-row gap-4 items-start w-fit">
+   <div className="flex flex-col md:flex-row gap-4 items-start w-full ">
  {/* Most Sold Product Card */}
         {mostSoldProduct && (
-          <Card className="max-w-md mx-auto border-blue-600 border-2">
+          <Card className=" border-blue-600 border-2">
             <CardHeader>
               <CardTitle>Most Sold Product</CardTitle>
             </CardHeader>
@@ -321,7 +321,7 @@ export default function AnalyticsPage() {
           </Card>
         )}
           {leastSoldProduct && (
-  <Card className="max-w-md mx-auto border-red-600 border-2">
+  <Card className=" border-red-600 border-2">
     <CardHeader>
       <CardTitle>Least Sold Product</CardTitle>
     </CardHeader>
