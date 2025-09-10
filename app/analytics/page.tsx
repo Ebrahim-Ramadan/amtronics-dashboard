@@ -98,7 +98,8 @@ export default function AnalyticsPage() {
   // Prepare chart data
   let chartData: ChartData<"bar"> = { labels: [], datasets: [] };
   let chartTitle = "Order Analytics";
-
+  // Calculate total number of orders for the selected period
+  const totalOrders = analytics.reduce((sum, a) => sum + (a.count || 0), 0);
   if (analytics.length > 0) {
     if (year && month && !day) {
       // Daily orders for a specific month
@@ -114,7 +115,7 @@ export default function AnalyticsPage() {
           },
         ],
       };
-      chartTitle = `Orders in ${MONTHS[Number(month) - 1]} ${year}`;
+      chartTitle = `${totalOrders} Orders in ${MONTHS[Number(month) - 1]} ${year}`;
     } else if (year && !month && !day) {
       // Monthly orders for a specific year
       chartData = {
@@ -129,7 +130,7 @@ export default function AnalyticsPage() {
           },
         ],
       };
-      chartTitle = `Orders in ${year}`;
+      chartTitle = `${totalOrders} Orders in ${year}`;
     } else if (year && month && day) {
       // Single day
       chartData = {
@@ -169,8 +170,7 @@ export default function AnalyticsPage() {
     },
   };
 
-  // Calculate total number of orders for the selected period
-  const totalOrders = analytics.reduce((sum, a) => sum + (a.count || 0), 0);
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
           <CardHeader>
             <CardTitle>Filter Orders by Date</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col md:flex-row gap-4 items-center">
+          <CardContent className="md:flex md:flex-row grid grid-cols-2  gap-2 md:gap-4 items-center">
             <div>
               <label className="block text-sm font-medium mb-1">Year</label>
               <select
@@ -294,15 +294,7 @@ export default function AnalyticsPage() {
             )}
           </CardContent>
         </Card>
-          {/* Show total orders */}
-        <div className="mb-4">
-          <Card>
-            <CardContent>
-              <span className="text-lg font-semibold">Total Orders:</span>
-              <span className="ml-2 text-xl font-bold text-blue-700">{totalOrders}</span>
-            </CardContent>
-          </Card>
-        </div>
+        
          <LazyLoad>
         
    <div className="flex flex-col md:flex-row gap-4 items-start w-fit">
