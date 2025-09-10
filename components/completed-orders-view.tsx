@@ -20,9 +20,10 @@ interface CompletedOrdersViewProps {
   currentPage: number
   totalPages: number
   promoCodes?: string[]
+  paymentMethod?: string // <-- Added field
 }
 
-export function CompletedOrdersView({ orders, totalCount, totalValue, currentPage, totalPages, promoCodes }: CompletedOrdersViewProps) {
+export function CompletedOrdersView({ orders, totalCount, totalValue, currentPage, totalPages, promoCodes, paymentMethod }: CompletedOrdersViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [totalFees, setTotalFees] = useState(0)
   const [isCalculated, setIsCalculated] = useState(false)
@@ -99,7 +100,19 @@ export function CompletedOrdersView({ orders, totalCount, totalValue, currentPag
           </Card>
         )}
       </div>
-
+   {/* Display Payment Method */}
+      {paymentMethod && (
+        <div className="mb-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Payment Method</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg">{paymentMethod}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       <FeesModal open={isModalOpen} onOpenChange={setIsModalOpen} onSubmit={handleFeesSubmit} />
 
       {/* Pass promoCodes to SearchAndSort */}

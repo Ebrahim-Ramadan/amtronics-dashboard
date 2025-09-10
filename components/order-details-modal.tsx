@@ -225,6 +225,16 @@ export function OrderDetailsModal({
                   </div>
                 )}
 
+               {/* Payment Method */}
+{order.paymentMethod && (
+  <div className="flex justify-between text-sm">
+    <span>Payment Method</span>
+    <span className={`font-medium px-2 ${order.paymentMethod === "cod" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+    {order.paymentMethod == "cod" ? "COD" : "in shop (KNET)"}
+    </span>
+  </div>
+)}
+
                 <Separator />
 
                 <div className="flex justify-between text-lg font-bold">
@@ -371,6 +381,9 @@ export function OrderDetailsModal({
             <div className="mb-2">
               <div><span className="font-semibold">Customer:</span> {order.customerInfo.name || "-"}</div>
               <div><span className="font-semibold">Date:</span> {formatDate(order.createdAt)}</div>
+              {order.paymentMethod && (
+                <div><span className="font-semibold">Payment:</span> {order.paymentMethod}</div>
+              )}
             </div>
             <div className="border-b my-2" />
             {/* Items */}

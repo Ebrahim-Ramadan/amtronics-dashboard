@@ -89,10 +89,10 @@ export function OrdersTable({ orders }: OrdersTableProps) {
               <TableHead>Order ID</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Items</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Shipping</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Promo Code</TableHead>
+              <TableHead>SubTotal</TableHead>
+              {/* <TableHead>Shipping</TableHead> */}
+              <TableHead>Paid</TableHead>
+              <TableHead>Promo</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -124,21 +124,19 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     <div className="text-sm text-green-600">-KD {order.discount.toFixed(2)} discount</div>
                   )}
                 </TableCell>
-                <TableCell className="font-medium">
+                {/* <TableCell className="font-medium">
                   KD{order.shippingFee?.toFixed(2) ?? "0.00"}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <Badge
                     variant="secondary"
                     className={
-                      order.status === "completed"
+                      order.paymentMethod === "cod"
                         ? "bg-green-100 text-green-800"
-                        : order.status === "canceled"
-                        ? "bg-red-100 text-red-800"
                         : "bg-yellow-100 text-yellow-800"
                     }
                   >
-                    {order.status}
+                    {order.paymentMethod == "cod" ? "COD" : "in shop (KNET)"}
                   </Badge>
                 </TableCell>
                 <TableCell>

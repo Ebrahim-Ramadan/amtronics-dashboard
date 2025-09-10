@@ -63,6 +63,7 @@ export interface Order {
   status: "pending" | "completed" | "canceled"
   createdAt: string
   shippingFee: number
+  paymentMethod?: string // <-- Added field
 }
 
 interface OrdersResult {
