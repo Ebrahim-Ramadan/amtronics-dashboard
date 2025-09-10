@@ -29,12 +29,12 @@ const MONTHS = [
   "April",
   "May",
   "June",
-  // "July",
-  // "August",
-  // "September",
-  // "October",
-  // "November",
-  // "December",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function getCurrentYear() {
@@ -52,6 +52,8 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
  const [mostSoldProduct, setMostSoldProduct] = useState<any | null>(null);
  const [leastSoldProduct, setLeastSoldProduct] = useState<any | null>(null);
+ const [paymentMethod, setPaymentMethod] = useState<string>(""); // Add payment method filter
+ const [status, setStatus] = useState<string>(""); // Add status filter
 
 
   const years = Array.from({ length: 1 }, (_, i) => getCurrentYear() - i);
@@ -66,6 +68,8 @@ export default function AnalyticsPage() {
         if (year) params.append("year", String(year));
         if (month) params.append("month", String(month));
         if (day) params.append("day", String(day));
+        if (paymentMethod) params.append("paymentMethod", paymentMethod);
+        if (status) params.append("status", status); // Add status to query
         const res = await fetch(`/api/analytics/orders?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch analytics");
         const data = await res.json();
@@ -89,7 +93,7 @@ export default function AnalyticsPage() {
       }
     }
     fetchAnalytics();
-  }, [year, month, day]);
+  }, [year, month, day, paymentMethod, status]); // Add status to deps
 
   // Prepare chart data
   let chartData: ChartData<"bar"> = { labels: [], datasets: [] };
@@ -165,16 +169,21 @@ export default function AnalyticsPage() {
     },
   };
 
+  // Calculate total number of orders for the selected period
+  const totalOrders = analytics.reduce((sum, a) => sum + (a.count || 0), 0);
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Analytics </h1>
           </div>
         </div>
+
+       
 
         {/* Controls */}
         <Card>
@@ -234,10 +243,33 @@ export default function AnalyticsPage() {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Payment Method</label>
+              <select
+                className="border rounded px-2 py-1"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                <option value="">All</option>
+                <option value="knet">KNET</option>
+                <option value="cod">Cash on Delivery</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Order Status</label>
+              <select
+                className="border rounded px-2 py-1"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="canceled">Canceled</option>
+              </select>
+            </div>
           </CardContent>
         </Card>
-
-
 
         {/* Chart */}
         <Card>
@@ -262,6 +294,15 @@ export default function AnalyticsPage() {
             )}
           </CardContent>
         </Card>
+          {/* Show total orders */}
+        <div className="mb-4">
+          <Card>
+            <CardContent>
+              <span className="text-lg font-semibold">Total Orders:</span>
+              <span className="ml-2 text-xl font-bold text-blue-700">{totalOrders}</span>
+            </CardContent>
+          </Card>
+        </div>
          <LazyLoad>
         
    <div className="flex flex-col md:flex-row gap-4 items-start w-fit">
@@ -311,6 +352,7 @@ export default function AnalyticsPage() {
 
    </div>
         </LazyLoad>
+       
 
         {engineerBundle.length > 0 && (
           <Card>
