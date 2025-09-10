@@ -251,7 +251,7 @@ export default function AnalyticsPage() {
                 onChange={(e) => setPaymentMethod(e.target.value)}
               >
                 <option value="">All</option>
-                <option value="knet">KNET</option>
+                <option value="knet">In shop (KNET)</option>
                 <option value="cod">Cash on Delivery</option>
               </select>
             </div>
