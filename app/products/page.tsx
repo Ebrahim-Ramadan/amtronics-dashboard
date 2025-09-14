@@ -139,7 +139,7 @@ export default function ProductsDashboard({ searchParams }: PageProps) {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu/>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Products Dashboard</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Products</h1>
           </div>
 
           {/* Search Bar and Add Product Button */}

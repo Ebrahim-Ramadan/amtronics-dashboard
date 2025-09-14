@@ -38,6 +38,7 @@ interface Product {
 
 interface Engineer {
   name: string;
+  email: string;
   bundle: ProductRef[];
 }
 
@@ -65,10 +66,11 @@ export function ProjectEditModal({ project }: ProjectEditModalProps) {
   const [name, setName] = useState(project.name);
   const [engineers, setEngineers] = useState<Engineer[]>(
     project.engineers.map(eng => ({
-      ...eng,
+      name: eng.name,
+      email: eng.email ?? "",
       bundle: eng.bundle.map(prod => ({
         ...prod,
-        quantity: prod.quantity ?? 1, // Default to 1 if not present
+        quantity: prod.quantity ?? 1,
       })),
     }))
   );
@@ -95,6 +97,12 @@ export function ProjectEditModal({ project }: ProjectEditModalProps) {
   const handleEngineerNameChange = (index: number, newName: string) => {
     const updated = [...engineers];
     updated[index].name = newName;
+    setEngineers(updated);
+  };
+
+  const handleEngineerEmailChange = (index: number, newEmail: string) => {
+    const updated = [...engineers];
+    updated[index].email = newEmail;
     setEngineers(updated);
   };
 
@@ -208,8 +216,8 @@ const addEngineer = () => {
     return;
   }
 
-  setEngineers([...engineers, { name: "Ahmed", bundle: [{ id: "", name: "" }] }]);
-  setError(null); // Clear any previous error
+  setEngineers([...engineers, { name: "", email: "", bundle: [{ id: "", name: "" }] }]);
+  setError(null);
 };
 
 
@@ -221,21 +229,24 @@ const addEngineer = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-if (name.trim() === "" && engineers.length === 0) {
-  setError("Project name is required");
-  return;
-}
- // Check if any product ID is empty
-  for (const eng of engineers) {
-    for (const prod of eng.bundle) {
-      if (!prod.id.trim()) {
-        setError("All product IDs must be filled.");
+
+    if (name.trim() === "") {
+      setError("Project name is required");
+      return;
+    }
+    for (const eng of engineers) {
+      if (!eng.name.trim() || !eng.email.trim()) {
+        setError("All engineer names and emails must be filled.");
         return;
       }
+      for (const prod of eng.bundle) {
+        if (!prod.id.trim()) {
+          setError("All product IDs must be filled.");
+          return;
+        }
+      }
     }
-  }
-setLoading(true);
+    setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/projects", {
@@ -295,18 +306,14 @@ setLoading(true);
         <Button variant="ghost" size="sm" aria-label={`Edit project ${project.name}`}>
           <Edit className="h-5 w-5" /> Edit
         </Button>
-
       </DialogTrigger>
-      
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Edit Project</DialogTitle>
           <DialogClose className="absolute top-3 right-3" />
         </DialogHeader>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && <div className="text-red-500">{error}</div>}
-
           <div>
             <Label htmlFor="project-name" className="mb-1 block">
               Project Name
@@ -319,7 +326,6 @@ setLoading(true);
               required
             />
           </div>
-
           {engineers.map((eng, engIdx) => (
             <div
               key={engIdx}
@@ -342,22 +348,29 @@ setLoading(true);
                   <XIcon className="ml-1 h-4 w-4" />
                 </Button>
               </div>
-              <Select
+              <Input
+                id={`engineer-name-${engIdx}`}
                 value={eng.name}
-                onValueChange={(val) => handleEngineerNameChange(engIdx, val)}
+                onChange={e => handleEngineerNameChange(engIdx, e.target.value)}
+                placeholder="Engineer Name"
+                required
+                className="mb-2"
+              />
+              <Label
+                htmlFor={`engineer-email-${engIdx}`}
+                className="font-semibold"
               >
-                <SelectTrigger id={`engineer-name-${engIdx}`}>
-                  <SelectValue placeholder="Select engineer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENGINEER_OPTIONS.map(({ value, label }) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
+                Engineer Email
+              </Label>
+              <Input
+                id={`engineer-email-${engIdx}`}
+                value={eng.email}
+                onChange={e => handleEngineerEmailChange(engIdx, e.target.value)}
+                placeholder="Engineer Email"
+                required
+                className="mb-2"
+                type="email"
+              />
               <div className="space-y-2 mt-4">
                 <Label className="font-semibold">Bundle Products</Label>
                 {eng.bundle.map((prod, prodIdx) => {
@@ -373,8 +386,6 @@ setLoading(true);
                             required
                           />
                           <Search className="bg-white absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          
-                          {/* Search Results Dropdown */}
                           {showDropdown[searchKey] && (
                             <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                               {searchLoading[searchKey] ? (
@@ -403,7 +414,6 @@ setLoading(true);
                             </div>
                           )}
                         </div>
-                        {/* Quantity input */}
                         <Input
                           type="number"
                           min={1}
@@ -422,8 +432,6 @@ setLoading(true);
                           <XIcon className="h-4 w-4" />
                         </Button>
                       </div>
-                      
-                      {/* Show selected product ID */}
                       {prod.id && (
                         <div className="text-xs text-gray-600 pl-2">
                           Selected Product ID: <span className="font-mono bg-gray-100 px-1 rounded">{prod.id}</span>
@@ -444,42 +452,37 @@ setLoading(true);
               </div>
             </div>
           ))}
-
           <Button type="button" onClick={addEngineer} className="w-full sm:w-auto" disabled={loading || isPending || engineers.some((eng) =>
-    eng.bundle.some((prod) => !prod.id.trim())
-  )}>
+            eng.bundle.some((prod) => !prod.id.trim())
+          )}>
             <Plus className="mr-1 h-4 w-4" />
             Add Engineer
           </Button>
-<div className="gap-2 mt-6 flex justify-between items-end flex-col w-full md:flex-row">
-  
-          <div className="flex gap-4 w-full">
-            <Button
-              type="submit"
-              disabled={loading || isPending}
-              className=""
-            >
-              {loading || isPending ? "Saving..." : "Save Changes"}
-            </Button>
+          <div className="gap-2 mt-6 flex justify-between items-end flex-col w-full md:flex-row">
+            <div className="flex gap-4 w-full">
+              <Button
+                type="submit"
+                disabled={loading || isPending}
+                className=""
+              >
+                {loading || isPending ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+            </div>
             <Button
               type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              // className="w-full "
+              variant="destructive"
+              onClick={handleDelete}
             >
-              Cancel
+              Delete Project
             </Button>
-           
           </div>
-           <Button
-  type="button"
-  variant="destructive"
-  onClick={handleDelete}
-  // className="w-full sm:w-auto"
->
-  Delete Project
-</Button>
-</div>
         </form>
       </DialogContent>
     </Dialog>

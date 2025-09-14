@@ -13,6 +13,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const ENGINEER_OPTIONS = [
   { value: "Ahmed", label: "Ahmed", icon: User },
@@ -36,6 +37,7 @@ interface Product {
 
 interface Engineer {
   name: string;
+  email: string;
   bundle: ProductRef[];
 }
 
@@ -44,7 +46,7 @@ export default function AddProjectForm() {
   const [form, setForm] = useState({
     name: "",
     engineers: [
-      { name: "", bundle: [{ id: "", name: "", quantity: 1 }] }, // <-- Start with empty name
+      { name: "", email: "", bundle: [{ id: "", name: "", quantity: 1 }] },
     ],
   });
   const [submitting, setSubmitting] = useState(false);
@@ -142,25 +144,33 @@ export default function AddProjectForm() {
     setSearchTimeouts(prev => ({ ...prev, [searchKey]: timeoutId }));
   };
 
-  const selectProduct = (product: Product, engineerIdx: number, bundleIdx: number) => {
-    const searchKey = `${engineerIdx}-${bundleIdx}`;
-    const newEngineers = [...form.engineers];
-    
-    newEngineers[engineerIdx].bundle[bundleIdx].id = product._id.toString();
-    newEngineers[engineerIdx].bundle[bundleIdx].name = product.en_name;
-    
-    setForm({ ...form, engineers: newEngineers });
-    setProductSearch(prev => ({ ...prev, [searchKey]: product.en_name }));
-    setShowDropdown(prev => ({ ...prev, [searchKey]: false }));
-  };
+// In selectProduct, prevent duplicate product selection
+const selectProduct = (product: Product, engineerIdx: number, bundleIdx: number) => {
+  const newEngineers = [...form.engineers];
+  // Check for duplicate product in the bundle
+  const alreadyExists = newEngineers[engineerIdx].bundle.some(
+    (item, idx) => item.id === product._id.toString() && idx !== bundleIdx
+  );
+  if (alreadyExists) {
+    toast.error("This product is already added to the bundle.");
+    setError("This product is already added to the bundle.");
+    return;
+  }
+  const searchKey = `${engineerIdx}-${bundleIdx}`;
+  newEngineers[engineerIdx].bundle[bundleIdx].id = product._id.toString();
+  newEngineers[engineerIdx].bundle[bundleIdx].name = product.en_name;
+  setForm({ ...form, engineers: newEngineers });
+  setProductSearch(prev => ({ ...prev, [searchKey]: product.en_name }));
+  setShowDropdown(prev => ({ ...prev, [searchKey]: false }));
+  setError(null);
+};
 
   function addEngineer() {
-    const nextName = ENGINEER_OPTIONS[form.engineers.length % ENGINEER_OPTIONS.length].value;
     setForm({
       ...form,
       engineers: [
         ...form.engineers,
-        { name: nextName, bundle: [{ id: "", name: "", quantity: 1 }] }, // <-- Add quantity default
+        { name: "", email: "", bundle: [{ id: "", name: "", quantity: 1 }] },
       ],
     });
   }
@@ -170,11 +180,19 @@ export default function AddProjectForm() {
       engineers: form.engineers.filter((_, i) => i !== idx),
     });
   }
-  function addBundle(idx: number) {
-    const newEngineers = [...form.engineers];
-    newEngineers[idx].bundle.push({ id: "", name: "", quantity: 1 }); // <-- Add quantity default
-    setForm({ ...form, engineers: newEngineers });
-  }
+function addBundle(idx: number) {
+  const newEngineers = [...form.engineers];
+  // Prevent adding duplicate products
+  const bundleProductIds = newEngineers[idx].bundle.map(b => b.id);
+  // Only add if last bundle is filled (to avoid empty duplicates)
+  if (newEngineers[idx].bundle.some(item => !item.id.trim())) return;
+
+  // You may want to show an error if needed
+  // setError("Please select a product before adding another.");
+
+  newEngineers[idx].bundle.push({ id: "", name: "", quantity: 1 });
+  setForm({ ...form, engineers: newEngineers });
+}
   function removeBundle(idx: number, bundleIdx: number) {
     const newEngineers = [...form.engineers];
     newEngineers[idx].bundle = newEngineers[idx].bundle.filter((_, i) => i !== bundleIdx);
@@ -209,10 +227,16 @@ export default function AddProjectForm() {
     setForm({ ...form, engineers: newEngineers });
   }
 
+  function handleEngineerEmailChange(e: React.ChangeEvent<HTMLInputElement>, idx: number) {
+    const newEngineers = [...form.engineers];
+    newEngineers[idx].email = e.target.value;
+    setForm({ ...form, engineers: newEngineers });
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button onClick={() => setOpen(true)}>+ Add Project</Button>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle> Add Project</DialogTitle>
         </DialogHeader>
@@ -232,7 +256,7 @@ export default function AddProjectForm() {
           {form.engineers.map((eng, idx) => {
             return (
               <div key={idx} className="border rounded p-2 mb-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <div className="flex flex-col sm:items-center justify-between gap-2 mb-2">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
                     <Label htmlFor={`engineer-name-${idx}`} className="font-semibold">Engineer Name</Label>
                     <Input
@@ -243,8 +267,21 @@ export default function AddProjectForm() {
                       onChange={e => handleEngineerNameChange(e, idx)}
                       required
                     />
-                  </div>
                   <Button type="button" variant="destructive" size="sm" onClick={() => removeEngineer(idx)} disabled={form.engineers.length === 1} className="w-full sm:w-auto mt-2 sm:mt-0">Remove <X/></Button>
+
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                    <Label htmlFor={`engineer-email-${idx}`} className="font-semibold">Engineer Email</Label>
+                    <Input
+                      id={`engineer-email-${idx}`}
+                      className="w-full sm:max-w-56"
+                      placeholder="Type engineer email"
+                      value={eng.email}
+                      onChange={e => handleEngineerEmailChange(e, idx)}
+                      required
+                      type="email"
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label className="font-semibold">Bundle Products</Label>
@@ -337,9 +374,10 @@ export default function AddProjectForm() {
             );
           })}
           <div className="flex justify-end mt-4">
-          <Button type="button" size="sm" onClick={addEngineer} className=" w-full sm:w-auto">
-            <Plus/>
-            Add Engineer</Button>
+            <Button type="button" size="sm" onClick={addEngineer} className=" w-full sm:w-auto">
+              <Plus/>
+              Add Engineer
+            </Button>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
