@@ -13,7 +13,6 @@ export interface Product {
   sku: string
   en_name: string
   ar_name: string
-  en_description: string
   en_long_description: string
   ar_long_description: string
   en_category: string
@@ -21,13 +20,10 @@ export interface Product {
   image: string
   quantity_on_hand: number | null
   sold_quantity: number
-  visible_in_catalog: number
-  visible_in_search: number
+  is_soldering: boolean
   discount?: number
   is_3d?: boolean
   model_3d_url?: string
-  sell_this?: number
-  buy_this?: number
   ave_cost?: number
   enable_quantity_in_store?: number
 }

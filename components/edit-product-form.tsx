@@ -36,15 +36,11 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         id === "quantity_on_hand" ||
         id === "id" ||
         id === "sold_quantity" ||
-        id === "visible_in_catalog" ||
-        id === "visible_in_search" ||
         id === "discount" ||
-        id === "sell_this" ||
-        id === "buy_this" ||
         id === "ave_cost" ||
         id === "enable_quantity_in_store"
           ? Number(value)
-          : id === "is_3d"
+          : id === "is_3d" || id === "is_soldering"
           ? (e.target as HTMLInputElement).checked
           : value,
     }))
@@ -117,14 +113,14 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
       toast.error("Sold Quantity must be a non-negative number.")
       return
     }
-    if (formData.visible_in_catalog === undefined || formData.visible_in_catalog < 0) {
-      toast.error("Visible in Catalog must be a non-negative number.")
-      return
-    }
-    if (formData.visible_in_search === undefined || formData.visible_in_search < 0) {
-      toast.error("Visible in Search must be a non-negative number.")
-      return
-    }
+    // if (formData.visible_in_catalog === undefined || formData.visible_in_catalog < 0) { // removed
+    //   toast.error("Visible in Catalog must be a non-negative number.")
+    //   return
+    // }
+    // if (formData.visible_in_search === undefined || formData.visible_in_search < 0) { // removed
+    //   toast.error("Visible in Search must be a non-negative number.")
+    //   return
+    // }
     if (formData.discount !== undefined && formData.discount > 100) {
       toast.error("Discount cannot be more than 100.")
       return
@@ -174,55 +170,44 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="id" className="text-right">ID</Label>
-        <Input id="id" type="number" value={formData.id} onChange={handleChange} className="col-span-3" required disabled={isPending} />
+        <Label htmlFor="id" className="">ID</Label>
+        <Input id="id" type="number" value={formData.id} onChange={handleChange} className="col-span-3" required disabled />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="sku" className="text-right">SKU</Label>
+        <Label htmlFor="sku" className="">SKU</Label>
         <Input id="sku" value={formData.sku} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="en_name" className="text-right">English Name</Label>
+        <Label htmlFor="en_name" className="">English Name</Label>
         <Input id="en_name" value={formData.en_name} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="ar_name" className="text-right">Arabic Name</Label>
+        <Label htmlFor="ar_name" className="">Arabic Name</Label>
         <Input id="ar_name" value={formData.ar_name} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="en_description" className="text-right">English Description</Label>
+      {/* <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="en_description" className="">English Description</Label>
         <Textarea id="en_description" value={formData.en_description} onChange={handleChange} className="col-span-3" disabled={isPending} />
-      </div>
+      </div> */}
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="en_long_description" className="text-right">English Long Description</Label>
+        <Label htmlFor="en_long_description" className="">English Long Description</Label>
         <Textarea id="en_long_description" value={formData.en_long_description} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="ar_long_description" className="text-right">Arabic Long Description</Label>
+        <Label htmlFor="ar_long_description" className="">Arabic Long Description</Label>
         <Textarea id="ar_long_description" value={formData.ar_long_description} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="en_category" className="text-right">English Category</Label>
-        {/* <Select
-          id="en_category"
-          value={formData.en_category}
-          onValueChange={value => setFormData(prev => ({ ...prev, en_category: value }))}
-          disabled={isPending}
-        >
-          <option value="">Select category</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </Select> */}
+        <Label htmlFor="en_category" className="">English Category</Label>
         <select 
-          id="en_main_category" 
+          id="en_category" 
           value={formData.en_category} 
           onChange={handleChange} 
           className="col-span-3 border rounded px-3 py-2" 
           required 
           disabled={isPending}
         >
-          <option value="">Select Main Category</option>
+          <option value="">Select Category</option>
           {categories.map((category) => (
             <option key={category} value={category}>
               {category}
@@ -231,36 +216,36 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         </select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="price" className="text-right">Price</Label>
+        <Label htmlFor="price" className="">Price</Label>
         <Input id="price" type="number" value={formData.price} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="image" className="text-right">Image URL</Label>
+        <Label htmlFor="image" className="">Image URL</Label>
         <Input id="image" value={formData.image} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="quantity_on_hand" className="text-right">Quantity on Hand</Label>
+        <Label htmlFor="quantity_on_hand" className="">Quantity on Hand</Label>
         <Input id="quantity_on_hand" type="number" value={formData.quantity_on_hand ?? ""} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="sold_quantity" className="text-right">Sold Quantity</Label>
+        <Label htmlFor="sold_quantity" className="">Sold Quantity</Label>
         <Input id="sold_quantity" type="number" value={formData.sold_quantity} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="visible_in_catalog" className="text-right">Visible in Catalog</Label>
+      {/* <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="visible_in_catalog" className="">Visible in Catalog</Label>
         <Input id="visible_in_catalog" type="number" value={formData.visible_in_catalog} onChange={handleChange} className="col-span-3" required disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="visible_in_search" className="text-right">Visible in Search</Label>
+        <Label htmlFor="visible_in_search" className="">Visible in Search</Label>
         <Input id="visible_in_search" type="number" value={formData.visible_in_search} onChange={handleChange} className="col-span-3" required disabled={isPending} />
-      </div>
+      </div> */}
       {/* Optional fields */}
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="discount" className="text-right">Discount (Optional)</Label>
+        <Label htmlFor="discount" className="">Discount (Optional)</Label>
         <Input id="discount" type="number" value={formData.discount ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="is_3d" className="text-right">3D Product</Label>
+        <Label htmlFor="is_3d" className="">3D Product</Label>
         <input
           id="is_3d"
           type="checkbox"
@@ -271,7 +256,7 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="model_3d_url" className="text-right">3D Model URL</Label>
+        <Label htmlFor="model_3d_url" className="">3D Model URL</Label>
         <Input
           id="model_3d_url"
           value={formData.model_3d_url || ""}
@@ -280,21 +265,32 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
           disabled={isPending}
         />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="sell_this" className="text-right">Sell This (Optional)</Label>
+      {/* <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="sell_this" className="">Sell This (Optional)</Label>
         <Input id="sell_this" type="number" value={formData.sell_this ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="buy_this" className="text-right">Buy This (Optional)</Label>
+        <Label htmlFor="buy_this" className="">Buy This (Optional)</Label>
         <Input id="buy_this" type="number" value={formData.buy_this ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
-      </div>
+      </div> */}
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="ave_cost" className="text-right">Average Cost (Optional)</Label>
+        <Label htmlFor="ave_cost" className="">Average Cost (Optional)</Label>
         <Input id="ave_cost" type="number" value={formData.ave_cost ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="enable_quantity_in_store" className="text-right">Enable Quantity In Store (Optional)</Label>
+        <Label htmlFor="enable_quantity_in_store" className="">Enable Quantity In Store (Optional)</Label>
         <Input id="enable_quantity_in_store" type="number" value={formData.enable_quantity_in_store ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="is_soldering" className="">For Soldering</Label>
+        <input
+          id="is_soldering"
+          type="checkbox"
+          checked={formData.is_soldering || false}
+          onChange={handleChange}
+          disabled={isPending}
+          className="h-4 w-4"
+        />
       </div>
       <Button type="submit" disabled={isPending || uploading3D}>
         {isPending ? "Updating Product..." : "Update Product"}

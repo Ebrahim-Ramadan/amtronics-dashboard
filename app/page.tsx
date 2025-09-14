@@ -85,7 +85,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
-        {[1, 2].map((i) => (
+        {[1].map((i) => (
           <Card key={i}>
             <CardHeader className="animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-3/4"></div>
