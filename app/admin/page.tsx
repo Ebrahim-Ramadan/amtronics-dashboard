@@ -221,7 +221,7 @@ export default function AdminManagementPage() {
           </h1>
         </div>
         <div>
-          <h2 className="text-lg font-bold mb-2">Add User</h2>
+          <h2 className="text-lg font-bold mb-2">Add New User</h2>
           <form
             className="flex flex-col md:flex-row gap-2 mb-4"
             onSubmit={addUser}
@@ -276,8 +276,14 @@ export default function AdminManagementPage() {
               Add User
             </Button>
           </form>
+           {/* Info for admin about password */}
+        <div className="mb-4">
+          <div className="text-xs bg-yellow-100 border-l-4 border-yellow-400 text-yellow-800 px-4 py-2 rounded font-semibold">
+            You will <span className="text-blue-700 font-bold">not be able to view or copy the password later</span>. Please copy it before submitting.
+          </div>
+        </div>
           {error && <div className="text-red-500 mb-2">{error}</div>}
-          <h2 className="text-lg font-bold mb-2">Manage Users & Roles</h2>
+          <h2 className="text-lg mt-8  font-bold mb-2">Manage Users & Roles</h2>
           {userLoading && <div>Loading users...</div>}
           <div className="overflow-x-auto overflow-y-hidden rounded shadow border bg-white">
             <table className="min-w-full text-xs md:text-sm">

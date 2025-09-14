@@ -30,14 +30,14 @@ export const Topleftmenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center ">
           <Button
             variant="ghost"
             size="icon"
             aria-label="Open navigation menu"
             className=" rounded-full transition-colors"
           >
-            <Menu className="h-6 w-6" />
+            <Menu size={14}/>
           </Button>
           {/* Add role label beside the menu icon */}
           {/* {role && (
@@ -214,7 +214,7 @@ export const Topleftmenu = () => {
           </>
         )}
         {email && (
-          <div className="px-3 pt-4 text-xs  text-neutral-600 mt-2">
+          <div className="px-3 pt-4 text-xs  text-neutral-500 mt-2">
             {email}
           </div>
         )}
