@@ -95,7 +95,7 @@ function LoadingSkeleton() {
             </CardContent>
           </Card>
         ))}
-        <Link href="/projects" passHref legacyBehavior>
+        {/* <Link href="/projects" passHref legacyBehavior>
           <a style={{ textDecoration: 'none' }}>
             <Card className="cursor-pointer hover:shadow-lg transition-shadow">
               <CardHeader>
@@ -109,7 +109,7 @@ function LoadingSkeleton() {
               </CardContent>
             </Card>
           </a>
-        </Link>
+        </Link> */}
       </div>
       <Card>
         <CardHeader>
@@ -225,7 +225,7 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
               <div className="text-2xl font-bold">{totalCount}</div>
             </CardContent>
           </Card>
-                  <Link href="/projects" passHref legacyBehavior>
+                  {/* <Link href="/projects" passHref legacyBehavior>
           <a style={{ textDecoration: 'none' }}>
             <Card className="cursor-pointer hover:shadow-lg transition-shadow">
               <CardHeader>
@@ -239,7 +239,7 @@ async function OrdersDashboardContent({ searchParams }: PageProps) {
               </CardContent>
             </Card>
           </a>
-        </Link>
+        </Link> */}
         </div>
 
         <Card>
