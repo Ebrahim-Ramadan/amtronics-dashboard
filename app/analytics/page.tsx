@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -50,14 +50,25 @@ export default function AnalyticsPage() {
   const [engineerName, setEngineerName] = useState<string>("")
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
- const [mostSoldProduct, setMostSoldProduct] = useState<any | null>(null);
- const [leastSoldProduct, setLeastSoldProduct] = useState<any | null>(null);
- const [paymentMethod, setPaymentMethod] = useState<string>(""); // Add payment method filter
- const [status, setStatus] = useState<string>(""); // Add status filter
+  const [mostSoldProduct, setMostSoldProduct] = useState<any | null>(null);
+  const [leastSoldProduct, setLeastSoldProduct] = useState<any | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string>(""); // Add payment method filter
+  const [status, setStatus] = useState<string>(""); // Add status filter
+  const [orders, setOrders] = useState<any[]>([]);
+  const [totalValue, setTotalValue] = useState(0);
 
 
   const years = Array.from({ length: 1 }, (_, i) => getCurrentYear() - i);
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+function getDaysInMonth(year: number, month: number) {
+  if (!year || !month) return [];
+  return Array.from({ length: new Date(year, month, 0).getDate() }, (_, i) => i + 1);
+}
+
+// In your component:
+const days = useMemo(() => {
+  if (year && month) return getDaysInMonth(year, Number(month));
+  return [];
+}, [year, month]);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -69,13 +80,31 @@ export default function AnalyticsPage() {
         if (month) params.append("month", String(month));
         if (day) params.append("day", String(day));
         if (paymentMethod) params.append("paymentMethod", paymentMethod);
-        if (status) params.append("status", status); // Add status to query
+        if (status) params.append("status", status);
         const res = await fetch(`/api/analytics/orders?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch analytics");
         const data = await res.json();
+        
         setAnalytics(data.analytics || []);
         setMostSoldProduct(data.mostSoldProduct || null);
         setLeastSoldProduct(data.leastSoldProduct || null);
+
+        // Add: setOrders from API
+        setOrders(data.orders || []);
+
+        // Calculate total value like completed-orders-view
+        let value = 0;
+        if (data.orders && Array.isArray(data.orders)) {
+          value = data.orders.reduce((sum: number, order: any) =>
+            sum + order.items.reduce((itemSum: number, item: any) => {
+              if (item.type === "project-bundle" && item.products) {
+                return itemSum + item.products.reduce((prodSum: number, prod: any) => prodSum + prod.price * item.quantity, 0);
+              } else {
+                return itemSum + (item.product?.price || 0) * item.quantity;
+              }
+            }, 0), 0);
+        }
+        setTotalValue(value);
 
         // Engineer private bundle (if logged as engineer/sub)
         try {
@@ -95,9 +124,13 @@ export default function AnalyticsPage() {
     fetchAnalytics();
   }, [year, month, day, paymentMethod, status]); // Add status to deps
 
+  // Memoize mostSoldProduct and leastSoldProduct
+  const memoMostSoldProduct = useMemo(() => mostSoldProduct, [mostSoldProduct]);
+  const memoLeastSoldProduct = useMemo(() => leastSoldProduct, [leastSoldProduct]);
+
   // Prepare chart data
   let chartData: ChartData<"bar"> = { labels: [], datasets: [] };
-  let chartTitle = "Order Analytics";
+  let chartTitle = "Order Analytics (KD)";
   // Calculate total number of orders for the selected period
   const totalOrders = analytics.reduce((sum, a) => sum + (a.count || 0), 0);
   if (analytics.length > 0) {
@@ -115,7 +148,7 @@ export default function AnalyticsPage() {
           },
         ],
       };
-      chartTitle = `${totalOrders} Orders in ${MONTHS[Number(month) - 1]} ${year}`;
+      chartTitle = `${totalOrders} Orders in ${MONTHS[Number(month) - 1]} ${year} (KD ${totalValue.toFixed(2)})`;
     } else if (year && !month && !day) {
       // Monthly orders for a specific year
       chartData = {
@@ -130,7 +163,7 @@ export default function AnalyticsPage() {
           },
         ],
       };
-      chartTitle = `${totalOrders} Orders in ${year}`;
+      chartTitle = `${totalOrders} Orders in ${year} (KD ${totalValue.toFixed(2)})`;
     } else if (year && month && day) {
       // Single day
       chartData = {
@@ -145,7 +178,7 @@ export default function AnalyticsPage() {
           },
         ],
       };
-      chartTitle = `Orders on ${MONTHS[Number(month) - 1]} ${day}, ${year}`;
+      chartTitle = `Orders on ${MONTHS[Number(month) - 1]} ${day}, ${year} (KD ${totalValue.toFixed(2)})`;
     }
   }
 
@@ -186,11 +219,11 @@ export default function AnalyticsPage() {
        
 
         {/* Controls */}
-        <Card>
+        <Card className="">
           <CardHeader>
             <CardTitle>Filter Orders by Date</CardTitle>
           </CardHeader>
-          <CardContent className="md:flex md:flex-row grid grid-cols-2  gap-2 md:gap-4 items-center">
+          <div className="p-4 md:p-6 md:flex md:flex-row grid grid-cols-2  gap-4 md:gap-6 items-center">
             <div>
               <label className="block text-sm font-medium mb-1">Year</label>
               <select
@@ -229,31 +262,19 @@ export default function AnalyticsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Day</label>
-              <select
-                className="border rounded px-2 py-1"
-                value={day}
-                onChange={(e) => setDay(e.target.value ? Number(e.target.value) : "")}
-                disabled={!month}
-              >
-                <option value="">All</option>
-                {days.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Payment Method</label>
-              <select
-                className="border rounded px-2 py-1"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <option value="">All</option>
-                <option value="knet">In shop (KNET)</option>
-                <option value="cod">Cash on Delivery</option>
-              </select>
+            <select
+  className="border rounded px-2 py-1"
+  value={day}
+  onChange={(e) => setDay(e.target.value ? Number(e.target.value) : "")}
+  disabled={!month}
+>
+  <option value="">All</option>
+  {days.map((d) => (
+    <option key={d} value={d}>
+      {d}
+    </option>
+  ))}
+</select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Order Status</label>
@@ -268,8 +289,22 @@ export default function AnalyticsPage() {
                 <option value="canceled">Canceled</option>
               </select>
             </div>
-          </CardContent>
+            <div>
+              <label className="block text-sm font-medium mb-1">Payment Method</label>
+              <select
+                className="border rounded px-2 py-1"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                <option value="">All</option>
+                <option value="knet">In shop (KNET)</option>
+                <option value="cod">Cash on Delivery (COD)</option>
+              </select>
+            </div>
+            
+          </div>
         </Card>
+
 
         {/* Chart */}
         <Card>
@@ -296,53 +331,54 @@ export default function AnalyticsPage() {
         </Card>
         
          <LazyLoad>
-        
-   <div className="flex flex-col md:flex-row gap-4 items-start w-full ">
- {/* Most Sold Product Card */}
-        {mostSoldProduct && (
-          <Card className=" border-blue-600 border-2">
-            <CardHeader>
-              <CardTitle>Most Sold Product</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4">
-              <img
-                src={mostSoldProduct.image.split(",")[0]}
-                alt={mostSoldProduct.en_name}
-                className="w-20 h-20 object-cover rounded"
-              />
-              <div>
-                <h2 className="text-lg font-semibold">{mostSoldProduct.en_name}</h2>
-                <p className="text-sm text-gray-600">Price: KD {mostSoldProduct.price.toFixed(2)}</p>
-                <p className="text-sm text-gray-600">
-                  Sold Quantity: {mostSoldProduct.sold_quantity}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-          {leastSoldProduct && (
-  <Card className=" border-red-600 border-2">
-    <CardHeader>
-      <CardTitle>Least Sold Product</CardTitle>
-    </CardHeader>
-    <CardContent className="flex items-center gap-4">
-      <img
-        src={leastSoldProduct.image.split(",")[0]}
-        alt={leastSoldProduct.en_name}
-        className="w-20 h-20 object-cover rounded"
-      />
-      <div>
-        <h2 className="text-lg font-semibold">{leastSoldProduct.en_name}</h2>
-        <p className="text-sm text-gray-600">Price: KD {leastSoldProduct.price.toFixed(2)}</p>
-        <p className="text-sm text-gray-600">
-          Sold Quantity: {leastSoldProduct.sold_quantity}
-        </p>
-      </div>
-    </CardContent>
-  </Card>
-)}
-
-   </div>
+          <div className="flex flex-col md:flex-row gap-4 items-start w-full">
+            {memoMostSoldProduct && (
+              <a
+                href={`https://amtronics.co/products/${memoMostSoldProduct._id}`}
+                target="_blank"
+                className="border-blue-600 border-2 flex flex-col gap-2 p-4 rounded-lg hover:shadow-lg transition-shadow w-full md:w-auto"
+              >
+                <p>Most Sold Product</p>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={memoMostSoldProduct.image.split(",")[0]}
+                    alt={memoMostSoldProduct.en_name}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                  <div>
+                    <h2 className="text-lg font-semibold">{memoMostSoldProduct.en_name}</h2>
+                    <p className="text-sm text-gray-600">Price: KD {memoMostSoldProduct.price.toFixed(2)}</p>
+                    <p className="text-sm text-gray-600">
+                      Sold Quantity: {memoMostSoldProduct.sold_quantity}
+                    </p>
+                  </div>
+                </div>
+              </a>
+            )}
+            {memoLeastSoldProduct && (
+              <a
+                href={`https://amtronics.co/products/${memoLeastSoldProduct._id}`}
+                target="_blank"
+                className="border-red-600 border-2 flex flex-col gap-2 p-4 rounded-lg hover:shadow-lg transition-shadow w-full md:w-auto"
+              >
+                <p>Least Sold Product</p>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={memoLeastSoldProduct.image.split(",")[0]}
+                    alt={memoLeastSoldProduct.en_name}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                  <div>
+                    <h2 className="text-lg font-semibold">{memoLeastSoldProduct.en_name}</h2>
+                    <p className="text-sm text-gray-600">Price: KD {memoLeastSoldProduct.price.toFixed(2)}</p>
+                    <p className="text-sm text-gray-600">
+                      Sold Quantity: {memoLeastSoldProduct.sold_quantity}
+                    </p>
+                  </div>
+                </div>
+              </a>
+            )}
+          </div>
         </LazyLoad>
        
 

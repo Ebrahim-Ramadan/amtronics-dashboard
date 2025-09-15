@@ -15,18 +15,18 @@ import Link from 'next/link';
 
 export const Topleftmenu = () => {
   const pathname = usePathname();
-  const [role, setRole] = useState<string | null>(null)
-  const [email, setEmail] = useState<string | null>(null)
+  const [user, setUser] = useState<any | null>(null); // Store the whole user object
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
     fetch('/api/session')
       .then(r => r.json())
-      .then(data => { if (mounted) { setRole(data.user.role); setEmail(data.user.email) } })
-      .catch(() => {})
-    return () => { mounted = false }
-  }, [])
+      .then(data => { if (mounted) setUser(data.user); })
+      .catch(() => {});
+    return () => { mounted = false; }
+  }, []);
 
+  // Use user?.role, user?.email, etc. below
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,21 +39,14 @@ export const Topleftmenu = () => {
           >
             <Menu size={14}/>
           </Button>
-          {/* Add role label beside the menu icon */}
-          {/* {role && (
-            <span className="ml-1 text-xs font-semibold capitalize text-gray-700">
-              {role}
-            </span>
-          )} */}
-          {/* Profile pill */}
-          {role && (
+          {user?.role && (
             <div className="flex items-center gap-2 rounded-full px-2 py-1 border text-xs bg-white">
               <div className={cn('h-6 w-6 rounded-full flex items-center justify-center text-white',
-                role === 'admin' ? 'bg-blue-600' : role === 'engineer' ? 'bg-emerald-600' : 'bg-gray-500'
+                user.role === 'admin' ? 'bg-blue-600' : user.role === 'engineer' ? 'bg-emerald-600' : 'bg-gray-500'
               )}>
-                {email ? email.charAt(0).toUpperCase() : role.charAt(0).toUpperCase()}
+                {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
               </div>
-              <span className="capitalize">{role}</span>
+              <span className="capitalize">{user.role}</span>
             </div>
           )}
         </div>
@@ -62,7 +55,7 @@ export const Topleftmenu = () => {
         align="start"
         className="w-64 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 font-medium transition-all duration-200 ease-in-out transform origin-top scale-95 hover:scale-100 space-y-1"
       >
-        {role === "engineer" ? (
+        {user?.role === "engineer" ? (
           <>
             <DropdownMenuItem asChild>
               <Link
@@ -213,9 +206,9 @@ export const Topleftmenu = () => {
             </DropdownMenuItem>
           </>
         )}
-        {email && (
+        {user?.email && (
           <div className="px-3 pt-4 text-xs  text-neutral-500 mt-2">
-            {email}
+            {user.email}
           </div>
         )}
         <DropdownMenuItem asChild>
