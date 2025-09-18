@@ -33,10 +33,13 @@ export async function POST(request: NextRequest) {
     const db = client.db("amtronics");
     const offers = db.collection("offers");
 
-    // Add new offer (default to inactive)
+     // Check if there are any offers already
+    const count = await offers.countDocuments();
+
+    // If no offers exist, set active: true, else active: false
     const result = await offers.insertOne({
       ...body,
-      active: false
+      active: count === 0 ? true : false
     });
 
     return NextResponse.json({ success: true, id: result.insertedId }, { status: 201 });
@@ -79,6 +82,15 @@ export async function DELETE(request: NextRequest) {
 
     await offers.deleteOne({ _id: new ObjectId(id) });
 
+     // Check if only one offer remains
+    const remainingOffers = await offers.find({}).toArray();
+    if (remainingOffers.length === 1) {
+      // Set the remaining offer to active: true
+      await offers.updateOne(
+        { _id: remainingOffers[0]._id },
+        { $set: { active: true } }
+      );
+    }
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

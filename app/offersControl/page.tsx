@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Topleftmenu from "@/components/top-left-menu";
 import { Edit, Trash2 } from "lucide-react";
-
+import { toast } from "sonner";
 const initialForm = {
   offerText: "",
   offerDescription: "",
@@ -46,82 +46,96 @@ export default function Home() {
 
   async function fetchOffers() {
     setLoading(true);
-    const res = await fetch("/api/offers");
-    const data = await res.json();
-    console.log('Fetched offers:', data.offers);
-    
-    setOffers(data.offers || []);
-    const active = data.offers?.find((o: any) => o.active);
-    setActiveOfferId(active?._id || null);
+   try {
+      const res = await fetch("/api/offers");
+      const data = await res.json();
+      setOffers(data.offers || []);
+      const active = data.offers?.find((o: any) => o.active);
+      setActiveOfferId(active?._id || null);
+    } catch (err) {
+      toast.error("Failed to fetch offers.");
+    }
     setLoading(false);
   }
 
   async function setActiveOffer(id: string) {
     setLoading(true);
-    await fetch("/api/offers/activate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    await fetchOffers();
+    try {
+      await fetch("/api/offers/activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      toast.success("Offer set as active.");
+      await fetchOffers();
+    } catch (err) {
+      toast.error("Failed to set offer as active.");
+    }
   }
 
   async function handleDelete(id: string) {
     setLoading(true);
-    await fetch("/api/offers", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    await fetchOffers();
+    try {
+      await fetch("/api/offers", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      toast.success("Offer deleted.");
+      await fetchOffers();
+    } catch (err) {
+      toast.error("Failed to delete offer.");
+    }
   }
 
-  async function handleAddOrEdit(e: React.FormEvent) {
+   async function handleAddOrEdit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
-    // Trim all fields before sending
     const trimmed = trimAllFields(form);
- if (
+    if (
       !trimmed.offerText ||
       !trimmed.offerDescription ||
       !trimmed.ar_offerText ||
       !trimmed.ar_offerDescription
     ) {
-      alert("All fields are required.");
+      toast.error("All fields are required.");
       setLoading(false);
       return;
     }
-      // Validate English fields
-  if (!isEnglish(trimmed.offerText) || !isEnglish(trimmed.offerDescription)) {
-    alert("English fields must contain only English text.");
-    setLoading(false);
-    return;
-  }
-
-    // Validate Arabic fields
+    if (!isEnglish(trimmed.offerText) || !isEnglish(trimmed.offerDescription)) {
+      toast.error("English fields must contain only English text.");
+      setLoading(false);
+      return;
+    }
     if (!isArabic(trimmed.ar_offerText) || !isArabic(trimmed.ar_offerDescription)) {
-      alert("Arabic fields must contain only Arabic text.");
+      toast.error("Arabic fields must contain only Arabic text.");
       setLoading(false);
       return;
     }
 
-    if (editingId) {
-      await fetch("/api/offers", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingId, ...trimmed }),
-      });
-    } else {
-      await fetch("/api/offers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(trimmed),
-      });
+    try {
+      if (editingId) {
+        await fetch("/api/offers", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingId, ...trimmed }),
+        });
+        toast.success("Offer updated.");
+      } else {
+        await fetch("/api/offers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(trimmed),
+        });
+        toast.success("Offer added.");
+      }
+      setForm(initialForm);
+      setEditingId(null);
+      await fetchOffers();
+    } catch (err) {
+      toast.error("Failed to save offer.");
     }
-    setForm(initialForm);
-    setEditingId(null);
-    await fetchOffers();
   }
 
   function handleEdit(offer: any) {
