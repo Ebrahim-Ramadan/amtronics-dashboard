@@ -207,7 +207,7 @@ export default function Home() {
                 required
                 style={{ direction: "rtl" }}
               />
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-end">
                 <Button type="submit" size="sm" disabled={loading}>
                   {editingId ? "Update" : "Add"}
                 </Button>
