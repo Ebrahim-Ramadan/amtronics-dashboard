@@ -33,7 +33,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         // Redirect to dashboard on success
-        router.replace("/")
+        router.replace("/products")
       } else {
         const data = await response.json()
         setError(data.message || "Login failed")

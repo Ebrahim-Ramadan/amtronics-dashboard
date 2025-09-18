@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
           ar_offerDescription: 1
         }
       })
+      // .limit(10) // Limit to 10 results
       .toArray();
 
     return NextResponse.json({ offers }, { status: 200 });
@@ -84,12 +85,12 @@ export async function DELETE(request: NextRequest) {
 
      // Check if only one offer remains
     const remainingOffers = await offers.find({}).toArray();
-    if (remainingOffers.length === 1) {
-      // Set the remaining offer to active: true
+   if (remainingOffers.length === 1 && !remainingOffers[0].active) {
+      // Only set active if not already active
       await offers.updateOne(
-        { _id: remainingOffers[0]._id },
-        { $set: { active: true } }
-      );
+          { _id: remainingOffers[0]._id },
+          { $set: { active: true } }
+        );
     }
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

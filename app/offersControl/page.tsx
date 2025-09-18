@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Topleftmenu from "@/components/top-left-menu";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Loader, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import LoadingDots from "@/components/ui/loading-dots";
 const initialForm = {
   offerText: "",
   offerDescription: "",
@@ -44,13 +45,16 @@ export default function Home() {
     fetchOffers();
   }, []);
 
-  async function fetchOffers() {
+ async function fetchOffers() {
     setLoading(true);
-   try {
+    try {
       const res = await fetch("/api/offers");
       const data = await res.json();
-      setOffers(data.offers || []);
-      const active = data.offers?.find((o: any) => o.active);
+      let offersArr = data.offers || [];
+      // Sort so active offer is first
+      offersArr = offersArr.sort((a: any, b: any) => (b.active ? 1 : 0) - (a.active ? 1 : 0));
+      setOffers(offersArr);
+      const active = offersArr.find((o: any) => o.active);
       setActiveOfferId(active?._id || null);
     } catch (err) {
       toast.error("Failed to fetch offers.");
@@ -74,6 +78,7 @@ export default function Home() {
   }
 
   async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this offer?")) return;
     setLoading(true);
     try {
       await fetch("/api/offers", {
@@ -227,41 +232,44 @@ export default function Home() {
         </Card>
 
         {/* Offers List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Offers List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading && <div>Loading...</div>}
-            {offers.map((offer: any) => (
+        <Card className="space-y-0 gap-0">
+                 <p className="font-bold text-xl px-4">
+                  Offers List
+                 </p>
+            {loading && <div className="flex justify-center items-center w-full">
+              <LoadingDots/>
+              </div>}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-4">
+            { !loading && offers.map((offer: any) => (
               <div
                 key={offer._id}
-                className="border-2 rounded-xl p-3 mb-2 flex flex-col gap-2"
+                className={`pt-10 my-2 border-2 rounded-xl p-3 mb-2 flex flex-col gap-2 relative ${offer.active ? 'border-green-500/10 bg-green-100/20 shadow-sm' : 'border-neutral-100'}`}
               >
-                <div>
+                <div className="line-clamp-2">
                   <strong>Offer Text:</strong> {offer.offerText}
                 </div>
-                <div>
+                <div className="line-clamp-3">
                   <strong>Description:</strong> {offer.offerDescription}
                 </div>
-                <div>
+                <div className="line-clamp-2">
                   <strong>Arabic Text:</strong>{" "}
                   {isArabic(trimBeforeArabic(offer.ar_offerText))
                     ? trimBeforeArabic(offer.ar_offerText)
                     : <span className="text-red-600">Not Arabic</span>}
                 </div>
-                <div>
+                <div className="line-clamp-4">
                   <strong>Arabic Description:</strong>{" "}
                   {isArabic(trimBeforeArabic(offer.ar_offerDescription))
                     ? trimBeforeArabic(offer.ar_offerDescription)
                     : <span className="text-red-600">Not Arabic</span>}
                 </div>
-                <div>
-                  <strong>Status:</strong>{" "}
+                <div className="absolute top-3 right-3">
                   {offer.active ? (
-                    <span className="text-green-600 font-bold">Active</span>
+                    <span className="text-green-600 font-bold bg-green-100 text-xs px-2 py-1 rounded-full"
+                     title="Showing on website top promotional header">Active ⓘ</span>
                   ) : (
-                    <span className="text-gray-500">Inactive</span>
+                    <span className="text-gray-500 bg-gray-100 text-xs px-2 py-1 rounded-full">Inactive</span>
                   )}
                 </div>
                 <div className="flex gap-2 justify-end">
@@ -294,7 +302,7 @@ export default function Home() {
               </div>
             ))}
             {offers.length === 0 && !loading && <div>No offers found.</div>}
-          </CardContent>
+          </div>
         </Card>
       </div>
     </div>
