@@ -204,6 +204,19 @@ export const Topleftmenu = () => {
                 Projects
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                href="/offersControl"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+                  pathname === '/offersControl' && 'bg-gray-100 text-blue-600'
+                )}
+                aria-current={pathname === '/offersControl' ? 'page' : undefined}
+              >
+                <Projector className="h-4 w-4" />
+                Offers
+              </Link>
+            </DropdownMenuItem>
           </>
         )}
         {user?.email && (
