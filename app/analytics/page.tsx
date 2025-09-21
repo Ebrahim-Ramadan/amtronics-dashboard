@@ -204,51 +204,54 @@ const days = useMemo(() => {
     },
   };
 
+
+
   function handleExportExcel() {
     // Prepare data for Excel
-    console.log('Exporting orders:', orders[0]);
-    
-    const data = orders.map((order: any) => ({
-      
-      OrderID: order._id,
-      Date: order.createdAt,
-      Status: order.status,
-      PaymentMethod: order.paymentMethod,
-      Customer: order.customerInfo?.name || "",
-      Email: order.customerInfo?.email || "",
-      Phone: order.customerInfo?.phone || "",
-      Address: `${order.customerInfo?.country || ""}, ${order.customerInfo?.city || ""}, ${order.customerInfo?.area || ""}`,
-      Items: order.items
-        .map((item: any) =>
-          item.type === "project-bundle" && item.products
-            ? item.products
-                .map(
-                  (prod: any) =>
-                    `${prod.en_name} (x${item.quantity}) KD${prod.price}`
-                )
-                .join("; ")
-            : `${item.product?.en_name || ""} (x${item.quantity}) KD${item.product?.price || 0}`
-        )
-        .join(" | "),
-      Total: order.items.reduce((sum: number, item: any) => {
+    const data = orders.map((order: any) => {
+ // Calculate total for each order based on product price and quantity
+      const total = order.items.reduce((sum: number, item: any) => {
         if (item.type === "project-bundle" && item.products) {
           return (
             sum +
             item.products.reduce(
               (prodSum: number, prod: any) =>
-                prodSum + prod.price * item.quantity,
+                prodSum + (prod.price || 0) * item.quantity,
               0
             )
           );
         } else {
           return (
             sum +
-            (item.product?.price || 0) * item.quantity
+            ((item.product?.price || 0) * item.quantity)
           );
         }
-      }, 0),
-      NetProfit: totalValue, // Use totalValue as net profit
-    }));
+      }, 0);
+      return {
+        OrderID: order._id,
+        Date: order.createdAt,
+        Status: order.status,
+        PaymentMethod: order.paymentMethod,
+        Customer: order.customerInfo?.name || "",
+        Email: order.customerInfo?.email || "",
+        Phone: order.customerInfo?.phone || "",
+        Address: `${order.customerInfo?.country || ""}, ${order.customerInfo?.city || ""}, ${order.customerInfo?.area || ""}`,
+        Items: order.items
+          .map((item: any) =>
+            item.type === "project-bundle" && item.products
+              ? item.products
+                  .map(
+                    (prod: any) =>
+                      `${prod.en_name} (x${item.quantity}) KD${prod.price}`
+                  )
+                  .join("; ")
+              : `${item.product?.en_name || ""} (x${item.quantity}) KD${item.product?.price || 0}`
+          )
+          .join(" | "),
+        Total: total,
+        NetProfit: total, // Use calculated total as net profit
+      };
+    });
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -370,7 +373,9 @@ const days = useMemo(() => {
           >
             <Upload size={14}/>
             Export 
-          </button></div>
+          </button>
+         
+          </div>
           </CardHeader>
           <CardContent>
             {loading ? (
