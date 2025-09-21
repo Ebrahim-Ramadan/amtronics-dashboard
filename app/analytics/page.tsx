@@ -265,15 +265,7 @@ const days = useMemo(() => {
             <Topleftmenu />
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Analytics </h1>
           </div>
-          <button
-            className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
-            onClick={handleExportExcel}
-            disabled={orders.length === 0}
-            title="Export filtered orders to Excel"
-          >
-            <Upload size={14}/>
-            Export 
-          </button>
+         
         </div>
 
        
@@ -369,7 +361,16 @@ const days = useMemo(() => {
         {/* Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>{chartTitle}</CardTitle>
+            <div className="flex justify-between items-center flex-col md:flex-row gap-2">{chartTitle}  
+              <button
+            className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50 w-fit self-end"
+            onClick={handleExportExcel}
+            disabled={orders.length === 0}
+            title="Export filtered orders to Excel"
+          >
+            <Upload size={14}/>
+            Export 
+          </button></div>
           </CardHeader>
           <CardContent>
             {loading ? (
