@@ -44,42 +44,42 @@ export async function GET(request: NextRequest) {
     const orders = await collection.find(
       query,
       {
-        projection: {
-          _id: 1,
-          createdAt: 1,
-          paymentMethod: 1,
-          status: 1,
-          items: {
-            $map: {
-              input: "$items",
-              as: "item",
-              in: {
-                quantity: "$$item.quantity",
-                type: "$$item.type",
-                // For regular products
-                product: {
-                  _id: "$$item.product._id",
-                  price: "$$item.product.price",
-                  en_name: "$$item.product.en_name",
-                  sku: "$$item.product.sku"
-                },
-                // For project-bundle items
-                products: {
-                  $map: {
-                    input: "$$item.products",
-                    as: "prod",
-                    in: {
-                      _id: "$$prod._id",
-                      price: "$$prod.price",
-                      en_name: "$$prod.en_name",
-                      sku: "$$prod.sku"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        // projection: {
+        //   _id: 1,
+        //   createdAt: 1,
+        //   paymentMethod: 1,
+        //   status: 1,
+        //   items: {
+        //     $map: {
+        //       input: "$items",
+        //       as: "item",
+        //       in: {
+        //         quantity: "$$item.quantity",
+        //         type: "$$item.type",
+        //         // For regular products
+        //         product: {
+        //           _id: "$$item.product._id",
+        //           price: "$$item.product.price",
+        //           en_name: "$$item.product.en_name",
+        //           sku: "$$item.product.sku"
+        //         },
+        //         // For project-bundle items
+        //         products: {
+        //           $map: {
+        //             input: "$$item.products",
+        //             as: "prod",
+        //             in: {
+        //               _id: "$$prod._id",
+        //               price: "$$prod.price",
+        //               en_name: "$$prod.en_name",
+        //               sku: "$$prod.sku"
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
       }
     ).toArray();
 

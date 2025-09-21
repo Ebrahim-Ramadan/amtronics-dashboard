@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { ChartData, ChartOptions } from "chart.js";
 import {
@@ -15,6 +15,7 @@ import {
   Legend,
 } from "chart.js";
 import LazyLoad from "@/lib/LazyLoad";
+import * as XLSX from "xlsx";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -203,7 +204,57 @@ const days = useMemo(() => {
     },
   };
 
+  function handleExportExcel() {
+    // Prepare data for Excel
+    console.log('Exporting orders:', orders[0]);
+    
+    const data = orders.map((order: any) => ({
+      
+      OrderID: order._id,
+      Date: order.createdAt,
+      Status: order.status,
+      PaymentMethod: order.paymentMethod,
+      Customer: order.customerInfo?.name || "",
+      Email: order.customerInfo?.email || "",
+      Phone: order.customerInfo?.phone || "",
+      Address: `${order.customerInfo?.country || ""}, ${order.customerInfo?.city || ""}, ${order.customerInfo?.area || ""}`,
+      Items: order.items
+        .map((item: any) =>
+          item.type === "project-bundle" && item.products
+            ? item.products
+                .map(
+                  (prod: any) =>
+                    `${prod.en_name} (x${item.quantity}) KD${prod.price}`
+                )
+                .join("; ")
+            : `${item.product?.en_name || ""} (x${item.quantity}) KD${item.product?.price || 0}`
+        )
+        .join(" | "),
+      Total: order.items.reduce((sum: number, item: any) => {
+        if (item.type === "project-bundle" && item.products) {
+          return (
+            sum +
+            item.products.reduce(
+              (prodSum: number, prod: any) =>
+                prodSum + prod.price * item.quantity,
+              0
+            )
+          );
+        } else {
+          return (
+            sum +
+            (item.product?.price || 0) * item.quantity
+          );
+        }
+      }, 0),
+      NetProfit: totalValue, // Use totalValue as net profit
+    }));
 
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+    XLSX.writeFile(wb, "orders-analytics.xlsx");
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
@@ -214,6 +265,15 @@ const days = useMemo(() => {
             <Topleftmenu />
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Analytics </h1>
           </div>
+          <button
+            className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
+            onClick={handleExportExcel}
+            disabled={orders.length === 0}
+            title="Export filtered orders to Excel"
+          >
+            <Upload size={14}/>
+            Export 
+          </button>
         </div>
 
        
