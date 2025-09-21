@@ -31,6 +31,7 @@ export interface Product {
 export interface CartItem {
   product: Product
   quantity: number
+  welding: boolean
 }
 
 export interface PromoCode {

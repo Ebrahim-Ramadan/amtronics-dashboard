@@ -332,7 +332,7 @@ export function OrderDetailsModal({
                   return (
                     <div
                       key={index}
-                      className="flex items-start gap-4 border p-3 rounded-lg flex-col md:flex-row"
+                      className="relative flex items-start gap-4 border p-3 rounded-lg flex-col md:flex-row"
                     >
                       <img
                         src={img}
@@ -343,18 +343,23 @@ export function OrderDetailsModal({
                         }
                       />
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{title}</p>
+                        <p className="font-medium text-sm leading-tight">{title}</p>
                         {isProject && (
                           <p className="text-xs text-gray-500">
                             Engineers: {item.engineerNames?.join(", ") || "N/A"}
                           </p>
                         )}
-                        <p className="text-xs text-gray-500">
-                          Qty: {item.quantity}
+                        <p className="bg-blue-500 rounded-full w-4 h-4 absolute top-2 left-2 flex justify-center items-center text-xs text-white">
+                          {item.quantity}
                         </p>
                         <p className="text-xs">
                           KD {(price * item.quantity).toFixed(2)}
                         </p>
+                        <p className="text-xs font-semibold text-[#00BED5]">
+                           {item.welding ? "Yes" : "No"} welding
+                        </p>
+
+
                       </div>
                     </div>
                   );

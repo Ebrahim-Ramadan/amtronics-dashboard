@@ -27,6 +27,7 @@ export interface Product {
 export interface OrderItem {
   product: Product
   quantity: number
+  welding: boolean
 }
 
 export interface ProjectBundleItem {

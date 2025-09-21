@@ -20,31 +20,25 @@ export const categories = [
   "Modules",
   "Sparkfun",
   "Transistor & Regulator",
-  "Power Supply",
   "Accessories",
   "Switch",
-  "Resistor & Potentiometer",
-  "Diode",
   "Sensor",
   "DFRobot",
   "Keyestudio",
-  "Servo & Stepper Motor",
   "Led & Diode",
-  "Battery",
-  "Transistor",
   "IC",
-  "3D Print",
   "Capacitors",
   "Batteries & Power Supply",
   "Tools",
-  "DC Motor & Pump",
-  "Motor",
+  "DC Motor & Pump & Servo & Stepper Motor",
   "Arduino",
-  "Filament",
-  "Potentiometer",
+  "Filament & 3D Print",
+  "Resistor & Potentiometer",
   "Raspberry Pi",
   "Bread Board & PCB",
-  "custom 3D"
+  "custom 3D",
+  "DIY"
+
 ]
 
 export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
