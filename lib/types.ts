@@ -26,6 +26,7 @@ export interface Product {
   ave_cost?: number
   is_3d?: boolean
   model_3d_url?: string
+  priorityIndex?: number
 }
 
 export interface CartItem {

@@ -59,14 +59,15 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
     model_3d_url: "",
     ave_cost: 0,
     enable_quantity_in_store: 0,
-    is_soldering: false, // <-- add this line
+    is_soldering: false,
+    priorityIndex: undefined, // <-- add this line
   })
 
   const [selected3DFile, setSelected3DFile] = useState<File | null>(null)
   const [uploading3D, setUploading3D] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { id, value, type } = e.target
+    const { id, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
       [id]:
@@ -75,9 +76,10 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
         id === "sold_quantity" ||
         id === "discount" ||
         id === "ave_cost" ||
-        id === "enable_quantity_in_store"
+        id === "enable_quantity_in_store" ||
+        id === "priorityIndex" // <-- handle priorityIndex as number
           ? Number(value)
-          : id === "is_3d" || id === "is_soldering" // <-- add is_soldering here
+          : id === "is_3d" || id === "is_soldering"
           ? (e.target as HTMLInputElement).checked
           : value,
     }))
@@ -339,6 +341,21 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
           disabled={isPending}
           className="h-4 w-4"
         />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="priorityIndex" className="">Priority Index (Optional)</Label>
+        <select
+          id="priorityIndex"
+          value={formData.priorityIndex ?? ""}
+          onChange={handleChange}
+          className="col-span-3 border rounded px-3 py-2"
+          disabled={isPending}
+        >
+          <option value="">Select Priority</option>
+          {[...Array(10)].map((_, i) => (
+            <option key={i + 1} value={i + 1}>{i + 1}</option>
+          ))}
+        </select>
       </div>
       <Button type="submit" disabled={isPending || uploading3D}>
         {isPending ? "Adding Product..." : "Add Product"}
