@@ -19,6 +19,8 @@ type Project = {
   name: string;
   quantities_sold?: number;
   engineers: { name: string; email: string }[];
+  total_sales?: number;
+  paymentMethod?: string[]; // Add payment_method field
 };
 
 // Dynamically import the top left menu
@@ -88,6 +90,8 @@ export default function AdminManagementPage() {
       const res = await fetch(`/api/projects?engineerEmail=${encodeURIComponent(email)}`);
       if (res.ok) {
         const data = await res.json();
+        console.log('data', data);
+        
         setProjects(data.projects || []);
       }
     } finally {
@@ -174,37 +178,46 @@ export default function AdminManagementPage() {
           <div className="flex items-center gap-2 md:gap-4 mb-4">
             <Topleftmenu />
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">
-              My Projects
+               Projects
             </h1>
           </div>
           {userLoading && <div>Loading projects...</div>}
-          <div className="overflow-x-auto overflow-y-hidden rounded shadow border bg-white">
-            <table className="min-w-full text-xs md:text-sm">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-2 py-2 text-left">Project Name</th>
-                  <th className="px-2 py-2 text-left">Quantities Sold</th>
-                  <th className="px-2 py-2 text-left">Engineers</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((p) => (
-                  <tr key={p._id} className="border-t hover:bg-gray-50">
-                    <td className="px-2 py-2 break-all max-w-[120px]">{p.name}</td>
-                    <td className="px-2 py-2">{p.quantities_sold ?? 0}</td>
-                    <td className="px-2 py-2">
-                      {p.engineers.map((e) => (
-                        <div key={e.email}>{e.name} ({e.email})</div>
-                      ))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {projects.length === 0 && (
-              <div className="p-4 text-gray-500">No projects found for you.</div>
-            )}
-          </div>
+          <div className="overflow-x-auto w-full">
+  <table className="min-w-full text-xs md:text-sm whitespace-nowrap">
+    <thead>
+      <tr className="bg-gray-100">
+        <th className="px-2 py-2 text-left">Project Name</th>
+        <th className="px-2 py-2 text-left">Quantities Sold</th>
+        <th className="px-2 py-2 text-left">Total Sales (KD)</th>
+        <th className="px-2 py-2 text-left">Payment Method</th> {/* Add this column */}
+
+        <th className="px-2 py-2 text-left">Engineers</th>
+      </tr>
+    </thead>
+    <tbody>
+      {projects.map((p) => (
+        <tr key={p._id} className="border-t hover:bg-gray-50">
+          <td className="px-2 py-2 max-w-[120px] truncate">{p.name}</td>
+          <td className="px-2 py-2">{p.quantities_sold ?? 0}</td>
+          <td className="px-2 py-2">{p.total_sales?.toFixed(2) ?? "0.00"}</td>
+          <td className="px-2 py-2">
+        {Array.isArray(p.paymentMethod) && p.paymentMethod.length > 0
+          ? p.paymentMethod.join(", ")
+          : "-"}
+      </td>
+          <td className="px-2 py-2">
+            {p.engineers.map((e, idx) => (
+              <span key={e.email}>
+                {e.name} ({e.email}){idx < p.engineers.length - 1 ? ", " : ""}
+              </span>
+            ))}
+          </td>
+          
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
         </div>
       </div>
     );

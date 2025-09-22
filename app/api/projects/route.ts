@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
     const client = await clientPromise;
     const db = client.db("amtronics");
     const collection = db.collection("projects");
+    const ordersCollection = db.collection("orders");
 
     // Get engineerEmail from query params
     const { searchParams } = new URL(request.url);
@@ -76,7 +77,39 @@ export async function GET(request: NextRequest) {
         quantities_sold: 1,
       }
     }).toArray();
-console.log('Fetched projects:', projects);
+
+    // For each project, calculate total_sales from orders
+    for (const project of projects) {
+      // Find all orders with items.type === "project-bundle" and items.projectId === project._id
+      const orders = await ordersCollection.find({
+        "items.type": "project-bundle",
+        "items.projectId": project._id.toString()
+      }).toArray();
+
+      // Sum total sales for this project
+      let totalSales = 0;
+        const paymentMethods: Set<string> = new Set();
+
+      for (const order of orders) {
+         if (order.paymentMethod) {
+      paymentMethods.add(order.paymentMethod);
+    }
+        for (const item of order.items) {
+          if (item.type === "project-bundle" && item.projectId === project._id.toString()) {
+            // Sum up products price * quantity for this bundle
+            if (Array.isArray(item.products)) {
+              totalSales += item.products.reduce(
+                (sum: number, prod: any) => sum + (prod.price || 0) * (prod.quantity || 1),
+                0
+              ) * (item.quantity || 1);
+            }
+          }
+        }
+      }
+      project.total_sales = totalSales;
+      project.paymentMethod = Array.from(paymentMethods);
+    }
+console.log('projects', projects);
 
     const response = NextResponse.json({ projects });
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
