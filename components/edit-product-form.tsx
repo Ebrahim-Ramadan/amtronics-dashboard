@@ -38,7 +38,8 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         id === "sold_quantity" ||
         id === "discount" ||
         id === "ave_cost" ||
-        id === "enable_quantity_in_store"
+        id === "enable_quantity_in_store" ||
+        id === "priorityIndex"
           ? Number(value)
           : id === "is_3d" || id === "is_soldering"
           ? (e.target as HTMLInputElement).checked
