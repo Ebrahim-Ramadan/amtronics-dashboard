@@ -71,7 +71,7 @@ export function ProductSearch() {
     setSearchValue(product.en_name)
     setShowDropdown(false)
     const params = new URLSearchParams(searchParams.toString())
-    params.set("search", product.en_name)
+    params.set("search", product._id)
     params.delete("page")
     startTransition(() => {
       router.push(`?${params.toString()}`)

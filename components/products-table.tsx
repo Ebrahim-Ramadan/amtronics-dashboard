@@ -69,7 +69,7 @@ export function ProductsTable({ products, onProductDeleted }: ProductsTableProps
             products.map((product) => (
               <TableRow key={product._id}>
                 <TableCell className="font-medium">{product.id}</TableCell>
-                <TableCell>{product.barcode}</TableCell>
+                {/* <TableCell>{product.barcode}</TableCell> */}
                 <TableCell>{product.sku}</TableCell>
                 <TableCell>{product.en_name}</TableCell>
                 <TableCell>{product.ar_name}</TableCell>

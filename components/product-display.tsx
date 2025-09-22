@@ -105,6 +105,7 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
         <div><strong>Quantity on Hand:</strong> {product.quantity_on_hand}</div>
         <div><strong>Sold Quantity:</strong> {product.sold_quantity}</div>
         <div><strong>Soldering:</strong> {product.is_soldering ? "Yes" : "No"}</div>
+        <div><strong>Priority Index:</strong> {product.priorityIndex ? product.priorityIndex : "Default (0)"}</div>
         {product.image && (
           <div>
             <strong>Image:</strong>

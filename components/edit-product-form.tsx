@@ -143,6 +143,9 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
           ...formData,
           model_3d_url: model3DUrl
         }
+        if (productData.priorityIndex === 0) {
+          delete productData.priorityIndex
+        }
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/products`, {
           method: "PATCH",
@@ -282,16 +285,36 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         <Input id="enable_quantity_in_store" type="number" value={formData.enable_quantity_in_store ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="is_soldering" className="">For Soldering</Label>
-        <input
-          id="is_soldering"
-          type="checkbox"
-          checked={formData.is_soldering || false}
+  <Label htmlFor="is_soldering" className="col-span-3" >
+      mark this product as weldable (قابل للحام) on the main website
+
+  </Label>
+  <input
+    id="is_soldering"
+    type="checkbox"
+    checked={formData.is_soldering || false}
+    onChange={handleChange}
+    disabled={isPending}
+    className="h-4 w-4 col-span-1"
+  />
+</div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="priorityIndex" className="">Priority Index (Optional)</Label>
+        <select
+          id="priorityIndex"
+          value={formData.priorityIndex ?? 0}
           onChange={handleChange}
+          className="col-span-3 border rounded px-3 py-2"
           disabled={isPending}
-          className="h-4 w-4"
-        />
+        >
+          <option value={0}>Default (0)</option>
+          {[...Array(10)].map((_, i) => (
+            <option key={i + 1} value={i + 1}>{i + 1}</option>
+          ))}
+        </select>
       </div>
+      <p className="text-xs text-gray-500">
+        Priority Index is used to sort products in the search results. Default (0) means no priority than any others, 1 is being the highest.</p>
       <Button type="submit" disabled={isPending || uploading3D}>
         {isPending ? "Updating Product..." : "Update Product"}
       </Button>

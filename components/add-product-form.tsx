@@ -60,14 +60,14 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
     ave_cost: 0,
     enable_quantity_in_store: 0,
     is_soldering: false,
-    priorityIndex: undefined, // <-- add this line
+    priorityIndex: 0, // <-- add this line
   })
 
   const [selected3DFile, setSelected3DFile] = useState<File | null>(null)
   const [uploading3D, setUploading3D] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { id, value, type } = e.target;
+    const { id, value, type } = e.target
     setFormData((prev) => ({
       ...prev,
       [id]:
@@ -169,9 +169,13 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
           }
         }
 
+        // Only include priorityIndex if not default (0)
         const productData = {
           ...formData,
           model_3d_url: model3DUrl
+        }
+        if (productData.priorityIndex === 0) {
+          delete productData.priorityIndex
         }
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/products`, {
@@ -346,12 +350,12 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
         <Label htmlFor="priorityIndex" className="">Priority Index (Optional)</Label>
         <select
           id="priorityIndex"
-          value={formData.priorityIndex ?? ""}
+          value={formData.priorityIndex}
           onChange={handleChange}
           className="col-span-3 border rounded px-3 py-2"
           disabled={isPending}
         >
-          <option value="">Select Priority</option>
+          <option value={0}>Default (0)</option>
           {[...Array(10)].map((_, i) => (
             <option key={i + 1} value={i + 1}>{i + 1}</option>
           ))}

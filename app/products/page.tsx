@@ -26,6 +26,7 @@ export interface Product {
   model_3d_url?: string
   ave_cost?: number
   enable_quantity_in_store?: number
+  priorityIndex?: number
 }
 
 interface ProductsResult {

@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
       sku: 1,
       price: 1,
       model_3d_url: 1,
+
     }
     }
     else{
@@ -107,6 +108,8 @@ export async function GET(request: NextRequest) {
       en_brand: 1,
       barcode: 1,
       model_3d_url: 1,
+      priorityIndex: 1,
+      is_soldering: 1,
     }
     }
    
