@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package,  Menu, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle, Shield, MinusCircle } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package, Menu, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle, Shield, MinusCircle } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,7 @@ import Link from 'next/link';
 
 export const Topleftmenu = () => {
   const pathname = usePathname();
-  const [user, setUser] = useState<any | null>(null); // Store the whole user object
+  const [user, setUser] = useState<any | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -26,7 +26,6 @@ export const Topleftmenu = () => {
     return () => { mounted = false; }
   }, []);
 
-  // Use user?.role, user?.email, etc. below
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,14 +34,14 @@ export const Topleftmenu = () => {
             variant="ghost"
             size="icon"
             aria-label="Open navigation menu"
-            className=" rounded-full transition-colors"
+            className="rounded-full transition-colors"
           >
             <Menu size={14}/>
           </Button>
           {user?.role && (
             <div className="flex items-center gap-2 rounded-full px-2 py-1 border text-xs bg-white">
               <div className={cn('h-6 w-6 rounded-full flex items-center justify-center text-white',
-                user.role === 'admin' ? 'bg-blue-600' : user.role === 'engineer' ? 'bg-emerald-600' : 'bg-gray-500'
+                user.role === 'admin' ? 'bg-blue-600' : user.role === 'engineer' ? 'bg-emerald-600' : user.role === 'sub' ? 'bg-purple-600' : 'bg-gray-500'
               )}>
                 {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
               </div>
@@ -84,9 +83,37 @@ export const Topleftmenu = () => {
               </Link>
             </DropdownMenuItem>
           </>
+        ) : user?.role === "sub" ? (
+          <>
+            <DropdownMenuItem asChild>
+              <Link
+                href="/admin"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+                  pathname === '/admin' && 'bg-gray-100 text-blue-600'
+                )}
+                aria-current={pathname === '/admin' ? 'page' : undefined}
+              >
+                <Shield className="h-4 w-4" />
+                Admin Management
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                href="/promocodes"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+                  pathname === '/promocodes' && 'bg-gray-100 text-blue-600'
+                )}
+                aria-current={pathname === '/promocodes' ? 'page' : undefined}
+              >
+                <Ticket className="h-4 w-4" />
+                Promo Codes
+              </Link>
+            </DropdownMenuItem>
+          </>
         ) : (
           <>
-            {/* Pending Orders */}
             <DropdownMenuItem asChild>
               <Link
                 href="/"
@@ -109,7 +136,7 @@ export const Topleftmenu = () => {
                 )}
                 aria-current={pathname === '/completed-orders' ? 'page' : undefined}
               >
-                <CheckCircle   className="h-4 w-4" />
+                <CheckCircle className="h-4 w-4" />
                 Completed Orders
               </Link>
             </DropdownMenuItem>
@@ -220,7 +247,7 @@ export const Topleftmenu = () => {
           </>
         )}
         {user?.email && (
-          <div className="px-3 pt-4 text-xs  text-neutral-500 mt-2">
+          <div className="px-3 pt-4 text-xs text-neutral-500 mt-2">
             {user.email}
           </div>
         )}
@@ -232,4 +259,4 @@ export const Topleftmenu = () => {
   );
 };
 
-export default Topleftmenu
+export default Topleftmenu;

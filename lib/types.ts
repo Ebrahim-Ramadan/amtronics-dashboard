@@ -80,15 +80,22 @@ export interface UserDoc {
   active: boolean
   createdAt: Date
   updatedAt?: Date
+  allowedProjects?: string[] // Added allowedProjects
+  allowedPromos?: string[] // Added allowedPromos
 }
 
 export interface SessionData {
+  _id?: string
   email: string
   role: Role
+  name?: string
   engineerName?: string
   allowedEngineers?: string[]
-  iat: number
-  exp: number
+  allowedProjects?: string[]
+  allowedPromos?: string[]
+  iat?: number
+  exp?: number
+  active?: boolean
 }
 
 // --- 3D Model Upload Types ---

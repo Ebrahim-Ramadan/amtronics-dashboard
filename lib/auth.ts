@@ -97,12 +97,16 @@ export function buildSessionPayload(params: {
   role: Role
   engineerName?: string
   allowedEngineers?: string[]
+  allowedProjects?: string[] // Added allowedProjects
+  allowedPromos?: string[] // Added allowedPromos
 }): Omit<SessionData, "iat" | "exp"> {
   return {
     email: params.email,
     role: params.role,
     engineerName: params.engineerName,
     allowedEngineers: params.allowedEngineers,
+    allowedProjects: params.allowedProjects || [], // Include allowedProjects
+    allowedPromos: params.allowedPromos || [], // Include allowedPromos
   }
 }
 

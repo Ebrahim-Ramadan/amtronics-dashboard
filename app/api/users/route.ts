@@ -34,10 +34,11 @@ export async function GET(request: NextRequest) {
 }
 
 // Create user (admin only)
+// ...existing code...
 export async function POST(request: NextRequest) {
   const session = requireAdmin(request)
   if (session instanceof NextResponse) return session
-  const { email, password, role, engineerName, active } = await request.json()
+  const { email, password, role, engineerName, active, allowedProjects, allowedPromos } = await request.json()
 
   if (!email || !role || !password)
     return NextResponse.json({ error: 'email, password and role are required' }, { status: 400 })
@@ -61,6 +62,11 @@ export async function POST(request: NextRequest) {
     active: active ?? true,
     createdAt: now,
     updatedAt: now,
+    // Add allowedProjects and allowedPromos if sub
+    ...(role === "sub" && {
+      allowedProjects: Array.isArray(allowedProjects) ? allowedProjects : [],
+      allowedPromos: Array.isArray(allowedPromos) ? allowedPromos : [],
+    }),
   }
   const result = await users.insertOne(doc as any)
   return NextResponse.json({
@@ -70,6 +76,10 @@ export async function POST(request: NextRequest) {
       email,
       role,
       active: active ?? true,
+      ...(role === "sub" && {
+        allowedProjects: Array.isArray(allowedProjects) ? allowedProjects : [],
+        allowedPromos: Array.isArray(allowedPromos) ? allowedPromos : [],
+      }),
     }
   }, { status: 201 })
 }

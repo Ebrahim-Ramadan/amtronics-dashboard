@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
+// PATCH: Update an existing project
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
@@ -14,8 +15,6 @@ export async function PATCH(request: NextRequest) {
     if (!name && !engineers) {
       return NextResponse.json({ error: "At least one of name or engineers must be provided" }, { status: 400 });
     }
-
-    // Optional: validate engineers is array and structure here
 
     const client = await clientPromise;
     const db = client.db("amtronics");
@@ -55,10 +54,11 @@ export async function GET(request: NextRequest) {
     const collection = db.collection("projects");
     const ordersCollection = db.collection("orders");
 
-    // Get engineerEmail and sub from query params
+    // Get query parameters
     const { searchParams } = new URL(request.url);
     const engineerEmail = searchParams.get("engineerEmail");
     const sub = searchParams.get("sub");
+    const ids = searchParams.get("ids")?.split(",").map(id => id.trim()).filter(id => id) || []; // Trim and filter empty strings
 
     let query: any = {};
     let projection: any = {
@@ -70,16 +70,14 @@ export async function GET(request: NextRequest) {
 
     // If sub=true, only return _id and name
     if (sub === "true") {
-      projection = {
-        _id: 1,
-        name: 1,
-      };
+      projection = { _id: 1, name: 1 };
+      if (ids.length > 0) {
+        query = { _id: { $in: ids.map(id => new ObjectId(id)) } }; // Filter by provided IDs
+      }
     } else if (engineerEmail) {
-      query = {
-        engineers: {
-          $elemMatch: { email: engineerEmail }
-        }
-      };
+      query = { engineers: { $elemMatch: { email: engineerEmail } } };
+    } else if (ids.length > 0) {
+      query = { _id: { $in: ids.map(id => new ObjectId(id)) } }; // Also filter by IDs if not sub
     }
 
     const projects = await collection.find(query, { projection }).toArray();
@@ -130,11 +128,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    // Validate body: should have name, engineers (array), each engineer has name and bundle (array of products with id, name, image, price)
     if (!body.name || !Array.isArray(body.engineers)) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-    // Optionally validate each engineer and bundle
+
     const client = await clientPromise;
     const db = client.db("amtronics");
     const collection = db.collection("projects");
@@ -155,10 +152,7 @@ export async function POST(request: NextRequest) {
     console.error("Error adding project:", error);
     return NextResponse.json({ error: "Failed to add project" }, { status: 500 });
   }
-} 
-
-
-
+}
 
 // DELETE: Remove a project by ID
 export async function DELETE(request: NextRequest) {

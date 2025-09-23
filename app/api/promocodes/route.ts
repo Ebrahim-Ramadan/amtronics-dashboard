@@ -105,13 +105,21 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const sub = searchParams.get("sub");
+    const ids = searchParams.get("ids")?.split(",").map(id => id.trim()).filter(id => id) || []; // Trim and filter empty strings
 
+    let query: any = {};
     let projection: any = {};
-    if (sub === "true") {
-      projection = { _id: 1, code: 1, name: 1 };
+
+    if (sub === "true" || ids.length > 0) {
+      projection = { _id: 1, code: 1, percentage: 1 };
+      if (ids.length > 0) {
+        query = {
+          _id: { $in: ids.map(id => new ObjectId(id)) } // Filter by provided IDs
+        };
+      }
     }
 
-    const promocodes = await collection.find({}, projection && { projection }).toArray();
+    const promocodes = await collection.find(query, { projection }).toArray();
 
     return NextResponse.json({ promocodes }, { status: 200 });
   } catch (error) {

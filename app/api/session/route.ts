@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getSessionFromRequestHeaders } from '@/lib/session'
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionFromRequestHeaders } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
-  const session = getSessionFromRequestHeaders(request.headers)
+  const session = getSessionFromRequestHeaders(request.headers);
   if (!session) {
-    return NextResponse.json({ user: null })
+    return NextResponse.json({ user: null });
   }
+  
   // Return user object matching your User type
   return NextResponse.json({
     user: {
@@ -13,9 +14,9 @@ export async function GET(request: NextRequest) {
       name: session.engineerName || session.name || "",
       email: session.email,
       role: session.role,
-      active: session.active ?? true // Default to true if not present
+      active: session.active ?? true, // Default to true if not present
+      allowedProjects: session.allowedProjects || [], // Include allowedProjects
+      allowedPromos: session.allowedPromos || [] // Include allowedPromos
     }
-  })
+  });
 }
-
-
