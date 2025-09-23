@@ -84,7 +84,7 @@ export const Topleftmenu = () => {
             </DropdownMenuItem>
           </>
         ) : user?.role === "sub" ? (
-          <>
+          
             <DropdownMenuItem asChild>
               <Link
                 href="/admin"
@@ -98,20 +98,6 @@ export const Topleftmenu = () => {
                 Admin Management
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href="/promocodes"
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
-                  pathname === '/promocodes' && 'bg-gray-100 text-blue-600'
-                )}
-                aria-current={pathname === '/promocodes' ? 'page' : undefined}
-              >
-                <Ticket className="h-4 w-4" />
-                Promo Codes
-              </Link>
-            </DropdownMenuItem>
-          </>
         ) : (
           <>
             <DropdownMenuItem asChild>

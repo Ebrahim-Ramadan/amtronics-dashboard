@@ -243,10 +243,10 @@ export default function AdminManagementPage() {
               My Data
             </h1>
           </div>
-          {userLoading && <div>Loading data...</div>}
+          {userLoading && <div className="flex justify-center w-full"><LoadingDots/></div>}
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-bold mb-2">Assigned Projects</h2>
+              <h2 className="text-lg font-bold mb-2"> Projects</h2>
               <div className="overflow-x-auto w-full">
                 <table className="min-w-full text-xs md:text-sm whitespace-nowrap">
                   <thead>
@@ -283,7 +283,7 @@ export default function AdminManagementPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-bold mb-2">Assigned Promo Codes</h2>
+              <h2 className="text-lg font-bold mb-2"> Promo Codes</h2>
               <div className="overflow-x-auto w-full">
                 <table className="min-w-full text-xs md:text-sm whitespace-nowrap">
                   <thead>
