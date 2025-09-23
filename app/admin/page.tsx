@@ -113,7 +113,7 @@ useEffect(() => {
     setSubLoading(true);
     Promise.all([
       fetch("/api/projects?sub=true").then(res => res.json()),
-      fetch("/api/promocodes").then(res => res.json())
+      fetch("/api/promocodes?sub=true").then(res => res.json()),
     ]).then(([projectsData, promosData]) => {
       setAllProjects(projectsData.projects || []);
       setAllPromos(promosData.promocodes || []);
