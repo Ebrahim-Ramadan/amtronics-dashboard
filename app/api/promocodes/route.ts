@@ -100,14 +100,22 @@ export async function DELETE(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const client = await clientPromise;
-    const db = client.db("amtronics"); // Replace with your actual database name
-    const collection = db.collection("promocodes"); // Replace with your actual collection name
+    const db = client.db("amtronics");
+    const collection = db.collection("promocodes");
 
-    const promoCodes = await collection.find({}).toArray();
+    const { searchParams } = new URL(request.url);
+    const sub = searchParams.get("sub");
 
-    return NextResponse.json({ promoCodes }, { status: 200 });
+    let projection: any = {};
+    if (sub === "true") {
+      projection = { _id: 1, code: 1, name: 1 };
+    }
+
+    const promocodes = await collection.find({}, projection && { projection }).toArray();
+
+    return NextResponse.json({ promocodes }, { status: 200 });
   } catch (error) {
     console.error("Error fetching promo codes:", error);
     return NextResponse.json({ error: "Failed to fetch promo codes" }, { status: 500 });
   }
-} 
+}
