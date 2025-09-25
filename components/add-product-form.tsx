@@ -356,7 +356,7 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
           disabled={isPending}
         >
           <option value={0}>Default (0)</option>
-          {[...Array(10)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <option key={i + 1} value={i + 1}>{i + 1}</option>
           ))}
         </select>
