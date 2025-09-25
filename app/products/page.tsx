@@ -7,6 +7,11 @@ import { ProductDisplay } from "@/components/product-display"
 import dynamic from "next/dynamic"
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
+interface Variety {
+  en_name_variant: string
+  price: number
+  image?: string
+}
 export interface Product {
   _id: string
   id: number
@@ -27,6 +32,8 @@ export interface Product {
   ave_cost?: number
   enable_quantity_in_store?: number
   priorityIndex?: number
+  hasVarieties?: boolean
+  varieties?: Variety[]
 }
 
 interface ProductsResult {

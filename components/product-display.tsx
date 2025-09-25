@@ -3,13 +3,14 @@
 import { useState, useTransition, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Trash2, Loader2, CurlyBraces, Cuboid } from "lucide-react"
+import { Trash2, Loader2, Cuboid, Edit } from "lucide-react"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { EditProductButton } from "@/components/edit-product-button"
 import { Product } from "@/app/products/page"
 import Link from "next/link"
+import { AddVarietyForm } from "@/components/add-variety-form" // Import the AddVarietyForm
 
 interface ProductDisplayProps {
   initialProduct: Product | null
@@ -19,6 +20,8 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
   const router = useRouter()
   const [product, setProduct] = useState<Product | null>(initialProduct)
   const [isDeleting, startDeleteTransition] = useTransition()
+  const [isAddingVariety, setIsAddingVariety] = useState(false) // State to control the variety form visibility
+  const [editingVariety, setEditingVariety] = useState<{ index: number; variety: any } | null>(null) // State for editing variety
 
   useEffect(() => {
     setProduct(initialProduct)
@@ -54,6 +57,77 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
       }
     })
   }
+
+  const handleDeleteVariety = async (varietyIndex: number) => {
+    const varietyToDelete = product?.varieties[varietyIndex];
+    if (!varietyToDelete) return;
+
+    // Update the product in the database
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/products/varieties`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_id: product._id,
+          variety_index: varietyIndex,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedVarieties = product.varieties.filter((_, index) => index !== varietyIndex);
+        setProduct({ ...product, varieties: updatedVarieties });
+        toast.success("Variety deleted successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to delete variety.");
+      }
+    } catch (error) {
+      console.error("Error deleting variety:", error);
+      toast.error("An unexpected error occurred.");
+    }
+  };
+
+  const handleEditVariety = (variety: any, index: number) => {
+    setEditingVariety({ variety, index });
+  };
+
+  const handleUpdateVariety = async (updatedVariety: any) => {
+    console.log('updatedVariety', updatedVariety);
+    
+    if (editingVariety) {
+      const updatedVarieties = product?.varieties.map((variety, index) =>
+        index === editingVariety.index ? updatedVariety : variety
+      );
+
+      // Update the product in the database
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/products/varieties`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            product_id: product._id,
+            varieties: updatedVarieties, // Ensure this is an array
+          }),
+        });
+
+        if (response.ok) {
+          setProduct({ ...product, varieties: updatedVarieties });
+          toast.success("Variety updated successfully!");
+          setEditingVariety(null); // Reset editing state
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.message || "Failed to update variety.");
+        }
+      } catch (error) {
+        console.error("Error updating variety:", error);
+        toast.error("An unexpected error occurred.");
+      }
+    }
+  };
 
   if (!product) {
     return (
@@ -113,32 +187,47 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
             <img src={product.image.split(',')[0]} alt={product.en_name} className="mt-2 w-32 h-32 object-cover" />
           </div>
         )}
+
+        {/* Render varieties if they exist */}
+        {product.hasVarieties && product.varieties && product.varieties.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold">Varieties:</h3>
+            <ul className="list-disc md:pl-5 space-y-2">
+              {product.varieties.map((variety, index) => (
+                <li key={index} className="flex justify-between items-center">
+                  <div>
+                    <strong>{variety.en_name_variant}</strong> - KD {variety.price.toFixed(2)}
+                    {variety.image && (
+                      <div>
+                        <img src={variety.image} alt={variety.en_name_variant} className="mt-2 w-16 h-16 object-cover" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={() => handleEditVariety(variety, index)}>
+                      <Edit/>
+                    </Button>
+                    <Button variant="destructive" onClick={() => handleDeleteVariety(index)}>
+                      <Trash2/>
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <Button onClick={() => setIsAddingVariety(true)}>Add Variety</Button> {/* Button to open the variety form */}
+
       </CardContent>
-       {product.model_3d_url && (
-  <div className="mt-2 flex justify-end gap-2">
-    <Link
-      href={`/model3DViewer?modelurl=${encodeURIComponent(product.model_3d_url)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 px-4 py-2 rounded-md bg-blue-700 text-white font-semibold shadow hover:from-blue-700 hover:bg-cyan-800 transition"
-    >
-      <Cuboid className="w-4 h-4" />
-      View Model
-    </Link>
-    <a
-      href={product.model_3d_url}
-      download
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-200 text-gray-800 font-semibold shadow hover:bg-gray-300 transition"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-      </svg>
-      
-    </a>
-  </div>
-)}
+      {isAddingVariety && <AddVarietyForm productId={product._id} onClose={() => setIsAddingVariety(false)} onSubmit={handleUpdateVariety} />} {/* Render the variety form */}
+      {editingVariety && (
+        <AddVarietyForm
+          productId={product._id}
+          initialValues={editingVariety.variety}
+          onClose={() => setEditingVariety(null)}
+          onSubmit={handleUpdateVariety}
+        />
+      )}
     </Card>
   )
-} 
+}

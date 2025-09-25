@@ -110,6 +110,8 @@ export async function GET(request: NextRequest) {
       model_3d_url: 1,
       priorityIndex: 1,
       is_soldering: 1,
+      hasVarieties: 1,
+      varieties: 1,
     }
     }
    
