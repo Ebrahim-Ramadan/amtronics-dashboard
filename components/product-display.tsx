@@ -93,6 +93,12 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
     setEditingVariety({ variety, index });
   };
 
+  const handleAddVariety = async (newVariety: any) => {
+    // Update local state immediately
+    const updatedVarieties = [...(product?.varieties || []), newVariety];
+    setProduct({ ...product, varieties: updatedVarieties, hasVarieties: true });
+  };
+
   const handleUpdateVariety = async (updatedVariety: any) => {
     console.log('updatedVariety', updatedVariety);
     
@@ -110,14 +116,14 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
           },
           body: JSON.stringify({
             product_id: product._id,
-            varieties: updatedVarieties, // Ensure this is an array
+            varieties: updatedVarieties,
           }),
         });
 
         if (response.ok) {
           setProduct({ ...product, varieties: updatedVarieties });
           toast.success("Variety updated successfully!");
-          setEditingVariety(null); // Reset editing state
+          setEditingVariety(null);
         } else {
           const errorData = await response.json();
           toast.error(errorData.message || "Failed to update variety.");
@@ -219,13 +225,19 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
         <Button onClick={() => setIsAddingVariety(true)}>Add Variety</Button> {/* Button to open the variety form */}
 
       </CardContent>
-      {isAddingVariety && <AddVarietyForm productId={product._id} onClose={() => setIsAddingVariety(false)} onSubmit={handleUpdateVariety} />} {/* Render the variety form */}
+      {isAddingVariety && (
+        <AddVarietyForm 
+          productId={product._id} 
+          onClose={() => setIsAddingVariety(false)} 
+          onSubmit={handleAddVariety} // Use different handler for adding
+        />
+      )}
       {editingVariety && (
         <AddVarietyForm
           productId={product._id}
           initialValues={editingVariety.variety}
           onClose={() => setEditingVariety(null)}
-          onSubmit={handleUpdateVariety}
+          onSubmit={handleUpdateVariety} // Use different handler for updating
         />
       )}
     </Card>
