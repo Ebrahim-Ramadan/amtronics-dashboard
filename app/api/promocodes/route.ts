@@ -120,6 +120,7 @@ export async function GET(request: NextRequest) {
     }
 
     const promocodes = await collection.find(query, { projection }).toArray();
+console.log('Fetched promocodes:', promocodes);
 
     return NextResponse.json({ promocodes }, { status: 200 });
   } catch (error) {

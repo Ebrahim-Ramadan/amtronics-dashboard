@@ -27,7 +27,7 @@ export default function PromoCodesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/promocodes`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/promocodes`, {
         cache: "no-store",
       });
 
@@ -35,8 +35,10 @@ export default function PromoCodesPage() {
         throw new Error("Failed to fetch promo codes");
       }
 
-      const { promoCodes }: { promoCodes: PromoCode[] } = await response.json();
-      setPromoCodes(promoCodes);
+      const { promocodes }: { promocodes: PromoCode[] } = await response.json();
+      console.log('promoCodes'. promocodes);
+      
+      setPromoCodes(promocodes);
     } catch (err) {
       console.error("Error fetching promo codes:", err);
       setError("Failed to load promo codes. Please check the API route and database connection.");
