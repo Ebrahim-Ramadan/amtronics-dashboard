@@ -12,20 +12,23 @@ interface AddVarietyFormProps {
   initialValues?: {
     en_name_variant: string;
     price: number;
+    quantity: number; // Added quantity field
     image?: string;
   };
-  onSubmit: (variety: { en_name_variant: string; price: number; image?: string }) => void;
+  onSubmit: (variety: { en_name_variant: string; price: number; quantity: number; image?: string }) => void; // Updated type
 }
 
 export function AddVarietyForm({ productId, onClose, initialValues, onSubmit }: AddVarietyFormProps) {
   const [enNameVariant, setEnNameVariant] = useState(initialValues?.en_name_variant || "");
   const [price, setPrice] = useState(initialValues?.price || 0);
+  const [quantity, setQuantity] = useState(initialValues?.quantity || 0); // Added quantity state
   const [image, setImage] = useState(initialValues?.image || "");
 
   useEffect(() => {
     if (initialValues) {
       setEnNameVariant(initialValues.en_name_variant);
       setPrice(initialValues.price);
+      setQuantity(initialValues.quantity || 0); // Set quantity from initialValues
       setImage(initialValues.image || "");
     }
   }, [initialValues]);
@@ -36,6 +39,7 @@ export function AddVarietyForm({ productId, onClose, initialValues, onSubmit }: 
     const varietyData = {
       en_name_variant: enNameVariant,
       price,
+      quantity, // Include quantity in variety data
       image,
     };
 
@@ -96,6 +100,16 @@ export function AddVarietyForm({ productId, onClose, initialValues, onSubmit }: 
           type="number"
           value={price}
           onChange={(e) => setPrice(Number(e.target.value))}
+          required
+        />
+      </div>
+      <div>
+        <Label className="p-2 font-semibold" htmlFor="quantity">Stock Quantity</Label>
+        <Input
+          id="quantity"
+          type="number"
+          value={quantity}
+          onChange={(e) => setQuantity(Number(e.target.value))}
           required
         />
       </div>

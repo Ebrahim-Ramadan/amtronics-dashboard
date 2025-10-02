@@ -68,7 +68,6 @@ export default function PromoCodesPage() {
             <h1 className="text-xl md::text-3xl font-bold text-gray-900">Promo Codes</h1>
            
             </div>
-            <p className="text-gray-600">Add and manage promo codes</p>
           </div>
 
           {/* Add New Promo Code Button */}

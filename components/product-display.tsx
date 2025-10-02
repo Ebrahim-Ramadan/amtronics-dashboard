@@ -203,6 +203,10 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
                 <li key={index} className="flex justify-between items-center">
                   <div>
                     <strong>{variety.en_name_variant}</strong> - KD {variety.price.toFixed(2)}
+                    {/* Display quantity */}
+                    <div className="text-sm text-gray-600">
+                      Stock: {variety.quantity || 0}
+                    </div>
                     {variety.image && (
                       <div>
                         <img src={variety.image} alt={variety.en_name_variant} className="mt-2 w-16 h-16 object-cover" />
