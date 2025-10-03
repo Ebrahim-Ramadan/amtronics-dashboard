@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, FileText } from "lucide-react"; // Added FileText icon
 import dynamic from "next/dynamic";
 import type { ChartData, ChartOptions } from "chart.js";
 import {
@@ -16,6 +16,9 @@ import {
 } from "chart.js";
 import LazyLoad from "@/lib/LazyLoad";
 import * as XLSX from "xlsx";
+// Import jsPDF with dynamic import to avoid SSR issues
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -259,6 +262,79 @@ const days = useMemo(() => {
     XLSX.writeFile(wb, "orders-analytics.xlsx");
   }
 
+  function handleExportPDF() {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text("Orders Analytics Report", 14, 20);
+    
+    // Add filters information
+    doc.setFontSize(10);
+    let filterText = `Year: ${year}`;
+    if (month) filterText += `, Month: ${MONTHS[Number(month) - 1]}`;
+    if (day) filterText += `, Day: ${day}`;
+    if (status) filterText += `, Status: ${status}`;
+    if (paymentMethod) filterText += `, Payment Method: ${paymentMethod}`;
+    doc.text(filterText, 14, 30);
+    
+    // Add date of report generation
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 35);
+    
+    // Add total value
+    doc.setFontSize(12);
+    doc.text(`Total Orders: ${orders.length}`, 14, 45);
+    doc.text(`Total Value: KD ${totalValue.toFixed(2)}`, 14, 51);
+    
+    // Create table data
+    const tableColumn = [
+      "Order ID", 
+      "Date", 
+      "Status", 
+      "Payment", 
+      "Customer", 
+      "Total (KD)"
+    ];
+    
+    const tableRows = orders.map((order: any) => {
+      // Calculate total for each order
+      const total = order.items.reduce((sum: number, item: any) => {
+        if (item.type === "project-bundle" && item.products) {
+          return sum + item.products.reduce(
+            (prodSum: number, prod: any) => prodSum + (prod.price || 0) * item.quantity,
+            0
+          );
+        } else {
+          return sum + ((item.product?.price || 0) * item.quantity);
+        }
+      }, 0);
+      
+      return [
+        order._id.toString().substring(0, 8) + "...", // Truncated ID
+        new Date(order.createdAt).toLocaleDateString(),
+        order.status,
+        order.paymentMethod,
+        order.customerInfo?.name || "N/A",
+        total.toFixed(2)
+      ];
+    });
+    
+    // Add table to the PDF
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 60,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255
+      }
+    });
+    
+    // Save the PDF
+    doc.save("orders-analytics.pdf");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
@@ -365,16 +441,28 @@ const days = useMemo(() => {
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center flex-col md:flex-row gap-2">{chartTitle}  
+              <div className="flex gap-2">
               <button
-            className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50 w-fit self-end"
-            onClick={handleExportExcel}
-            disabled={orders.length === 0}
-            title="Export filtered orders to Excel"
-          >
-            <Upload size={14}/>
-            Export 
-          </button>
-         
+                className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
+                onClick={handleExportExcel}
+                disabled={orders.length === 0}
+                title="Export filtered orders to Excel"
+              >
+                <Upload size={14}/>
+                Export Excel
+              </button>
+              
+              {/* Add the new PDF export button */}
+              <button
+                className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
+                onClick={handleExportPDF}
+                disabled={orders.length === 0}
+                title="Export filtered orders to PDF"
+              >
+                <FileText size={14}/>
+                Export PDF
+              </button>
+            </div>
           </div>
           </CardHeader>
           <CardContent>

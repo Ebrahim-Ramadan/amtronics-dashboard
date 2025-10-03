@@ -21,6 +21,8 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.513.0",
     "mongodb": "^6.17.0",
     "next": "15.2.4",
