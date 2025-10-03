@@ -19,6 +19,7 @@ interface HWSDFee {
   serviceType: string;
   price: number;
   createdAt: string;
+  notes?: string;
 }
 
 export default function HWSDPage() {
@@ -33,6 +34,7 @@ export default function HWSDPage() {
   const [title, setTitle] = useState("");
   const [serviceType, setServiceType] = useState("hardware");
   const [price, setPrice] = useState("");
+const [notes, setNotes] = useState("");
 
   useEffect(() => {
     fetchFees();
@@ -65,7 +67,8 @@ export default function HWSDPage() {
       const payload = {
         title,
         serviceType,
-        price
+        price,
+        notes
       };
 
       const url = isEditing ? `/api/hwsd/${currentFee?._id}` : "/api/hwsd";
@@ -98,6 +101,7 @@ export default function HWSDPage() {
     setTitle(fee.title);
     setServiceType(fee.serviceType);
     setPrice(fee.price.toString());
+    setNotes(fee.notes || "");
     setIsEditing(true);
     setIsDialogOpen(true);
   };
@@ -126,6 +130,7 @@ export default function HWSDPage() {
     setTitle("");
     setServiceType("hardware");
     setPrice("");
+    setNotes(""); 
     setCurrentFee(null);
     setIsEditing(false);
   };
@@ -172,6 +177,7 @@ export default function HWSDPage() {
                       <th className="px-4 py-2 text-left">Title</th>
                       <th className="px-4 py-2 text-left">Service Type</th>
                       <th className="px-4 py-2 text-left">Price (KD)</th>
+                          <th className="px-4 py-2 text-left">Notes</th> {/* <-- Add this */}
                       <th className="px-4 py-2 text-left">Created</th>
                       <th className="px-4 py-2 text-right">Actions</th>
                     </tr>
@@ -182,6 +188,7 @@ export default function HWSDPage() {
                         <td className="px-4 py-3">{fee.title}</td>
                         <td className="px-4 py-3 capitalize">{fee.serviceType}</td>
                         <td className="px-4 py-3">KD {Number(fee.price).toFixed(2)}</td>
+                             <td className="px-4 py-3">{fee.notes || ""}</td>
                         <td className="px-4 py-3">{new Date(fee.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
@@ -267,7 +274,16 @@ export default function HWSDPage() {
                 required
               />
             </div>
-            
+            <div className="grid gap-2">
+    <Label htmlFor="notes">Notes</Label>
+    <Input
+      id="notes"
+      value={notes}
+      onChange={(e) => setNotes(e.target.value)}
+      placeholder="Optional notes"
+    />
+  </div>
+
             <div className="flex justify-end gap-2 pt-4">
               <Button 
                 type="button" 
