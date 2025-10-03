@@ -147,18 +147,18 @@ const [notes, setNotes] = useState("");
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Hardware & Software Fees</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Hardware & Software Design</h1>
           </div>
           <Button onClick={handleOpenDialog} className="flex items-center gap-2">
             <Plus size={16} />
-            Add New Fee
+            New
           </Button>
         </div>
 
         {/* Main content */}
         <Card>
           <CardHeader>
-            <CardTitle>Fee Structure</CardTitle>
+            <CardTitle>Designs</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (

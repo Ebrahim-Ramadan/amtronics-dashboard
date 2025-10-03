@@ -230,6 +230,19 @@ export const Topleftmenu = () => {
                 Offers
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                href="/hwsd"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+                  pathname === '/hwsd' && 'bg-gray-100 text-blue-600'
+                )}
+                aria-current={pathname === '/offersControl' ? 'page' : undefined}
+              >
+                <MinusCircle className="h-4 w-4" />
+                Hardware&Software Design
+              </Link>
+            </DropdownMenuItem>
           </>
         )}
         {user?.email && (
