@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Pencil, Trash } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -30,23 +30,29 @@ export default function HWSDPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentFee, setCurrentFee] = useState<HWSDFee | null>(null);
   
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  
   // Form states
   const [title, setTitle] = useState("");
   const [serviceType, setServiceType] = useState("hardware");
   const [price, setPrice] = useState("");
-const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     fetchFees();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const fetchFees = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/hwsd");
+      const response = await fetch(`/api/hwsd?page=${currentPage}&limit=${itemsPerPage}`);
       if (!response.ok) throw new Error("Failed to fetch fees");
       const data = await response.json();
       setFees(data.fees || []);
+      setTotalItems(data.total || data.fees.length);
     } catch (err: any) {
       setError(err.message || "An error occurred while fetching data");
       toast.error("Failed to load fees data");
@@ -140,6 +146,16 @@ const [notes, setNotes] = useState("");
     setIsDialogOpen(true);
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Calculate total price of all fees
+  const totalPrice = fees.reduce((sum, fee) => sum + Number(fee.price), 0);
+  
+  // Calculate total pages
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
@@ -177,7 +193,7 @@ const [notes, setNotes] = useState("");
                       <th className="px-4 py-2 text-left">Title</th>
                       <th className="px-4 py-2 text-left">Service Type</th>
                       <th className="px-4 py-2 text-left">Price (KD)</th>
-                          <th className="px-4 py-2 text-left">Notes</th> {/* <-- Add this */}
+                      <th className="px-4 py-2 text-left">Notes</th>
                       <th className="px-4 py-2 text-left">Created</th>
                       <th className="px-4 py-2 text-right">Actions</th>
                     </tr>
@@ -188,7 +204,7 @@ const [notes, setNotes] = useState("");
                         <td className="px-4 py-3">{fee.title}</td>
                         <td className="px-4 py-3 capitalize">{fee.serviceType}</td>
                         <td className="px-4 py-3">KD {Number(fee.price).toFixed(2)}</td>
-                             <td className="px-4 py-3">{fee.notes || ""}</td>
+                        <td className="px-4 py-3">{fee.notes || ""}</td>
                         <td className="px-4 py-3">{new Date(fee.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
@@ -212,8 +228,96 @@ const [notes, setNotes] = useState("");
                         </td>
                       </tr>
                     ))}
+                    {/* Total Row */}
+                    <tr className="border-t bg-gray-50 font-bold">
+                      <td className="px-4 py-3">Total</td>
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3">KD {totalPrice.toFixed(2)}</td>
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
                   </tbody>
                 </table>
+                
+                {/* Pagination */}
+                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
+                  <div className="flex flex-1 justify-between sm:hidden">
+                    <Button
+                      variant="outline"
+                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline" 
+                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Showing <span className="font-medium">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to{" "}
+                        <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{" "}
+                        <span className="font-medium">{totalItems}</span> results
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                        <Button
+                          variant="outline"
+                          className="rounded-l-md"
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          <span className="sr-only">Previous</span>
+                          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                        </Button>
+                        
+                        {/* Page numbers */}
+                        {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                          // Logic to show pages around current page
+                          let pageNumber;
+                          if (totalPages <= 5) {
+                            pageNumber = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNumber = i + 1;
+                            if (i === 4) pageNumber = totalPages;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNumber = totalPages - 4 + i;
+                          } else {
+                            pageNumber = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <Button
+                              key={i}
+                              variant={currentPage === pageNumber ? "default" : "outline"}
+                              className={`px-4 ${currentPage === pageNumber ? 'bg-blue-500 text-white' : ''}`}
+                              onClick={() => handlePageChange(pageNumber)}
+                            >
+                              {pageNumber}
+                            </Button>
+                          );
+                        })}
+                        
+                        <Button
+                          variant="outline"
+                          className="rounded-r-md"
+                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          <span className="sr-only">Next</span>
+                          <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                        </Button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
@@ -275,14 +379,14 @@ const [notes, setNotes] = useState("");
               />
             </div>
             <div className="grid gap-2">
-    <Label htmlFor="notes">Notes</Label>
-    <Input
-      id="notes"
-      value={notes}
-      onChange={(e) => setNotes(e.target.value)}
-      placeholder="Optional notes"
-    />
-  </div>
+              <Label htmlFor="notes">Notes</Label>
+              <Input
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Optional notes"
+              />
+            </div>
 
             <div className="flex justify-end gap-2 pt-4">
               <Button 

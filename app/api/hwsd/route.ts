@@ -2,42 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
-// GET - Fetch all fees
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
+
     const client = await clientPromise;
     const db = client.db("amtronics");
-    const searchParams = request.nextUrl.searchParams;
     
-    // Handle getting a single fee by ID
-    const id = searchParams.get('id');
-    if (id) {
-      const fee = await db.collection('hwsd').findOne({ _id: new ObjectId(id) });
-      if (!fee) {
-        return NextResponse.json({ error: 'Fee not found' }, { status: 404 });
-      }
-      return NextResponse.json(fee);
-    }
+    // Get total count
+    const total = await db.collection("hwsd_fees").countDocuments({});
     
-    // Handle getting all fees with optional filters
-    const email = searchParams.get('email');
-    const phone = searchParams.get('phone');
-    const status = searchParams.get('status');
-    
-    const filter: any = {};
-    if (email) filter.customerEmail = email;
-    if (phone) filter.customerPhone = phone;
-    if (status) filter.status = status;
-    
-    const fees = await db.collection('hwsd')
-      .find(filter)
+    // Get paginated results
+    const fees = await db.collection("hwsd_fees")
+      .find({})
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .toArray();
     
-    return NextResponse.json({ fees });
+    return NextResponse.json({ fees, total });
   } catch (error) {
-    console.error('Failed to fetch HWSD fees:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error fetching HWSD fees:", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
