@@ -13,10 +13,10 @@ export async function GET(request: NextRequest) {
     const db = client.db("amtronics");
     
     // Get total count
-    const total = await db.collection("hwsd_fees").countDocuments({});
+    const total = await db.collection("hwsd").countDocuments({});
     
     // Get paginated results
-    const fees = await db.collection("hwsd_fees")
+    const fees = await db.collection("hwsd")
       .find({})
       .sort({ createdAt: -1 })
       .skip(skip)
