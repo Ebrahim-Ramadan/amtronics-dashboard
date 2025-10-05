@@ -264,75 +264,114 @@ const days = useMemo(() => {
 
   function handleExportPDF() {
     const doc = new jsPDF();
-    
-    // Add title
-    doc.setFontSize(18);
-    doc.text("Orders Analytics Report", 14, 20);
-    
-    // Add filters information
-    doc.setFontSize(10);
-    let filterText = `Year: ${year}`;
-    if (month) filterText += `, Month: ${MONTHS[Number(month) - 1]}`;
-    if (day) filterText += `, Day: ${day}`;
-    if (status) filterText += `, Status: ${status}`;
-    if (paymentMethod) filterText += `, Payment Method: ${paymentMethod}`;
-    doc.text(filterText, 14, 30);
-    
-    // Add date of report generation
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 35);
-    
-    // Add total value
-    doc.setFontSize(12);
-    doc.text(`Total Orders: ${orders.length}`, 14, 45);
-    doc.text(`Total Value: KD ${totalValue.toFixed(2)}`, 14, 51);
-    
-    // Create table data
-    const tableColumn = [
-      "Order ID", 
-      "Date", 
-      "Status", 
-      "Payment", 
-      "Customer", 
-      "Total (KD)"
-    ];
-    
-    const tableRows = orders.map((order: any) => {
-      // Calculate total for each order
-      const total = order.items.reduce((sum: number, item: any) => {
-        if (item.type === "project-bundle" && item.products) {
-          return sum + item.products.reduce(
-            (prodSum: number, prod: any) => prodSum + (prod.price || 0) * item.quantity,
-            0
-          );
-        } else {
-          return sum + ((item.product?.price || 0) * item.quantity);
-        }
-      }, 0);
-      
-      return [
-        order._id.toString().substring(0, 8) + "...", // Truncated ID
-        new Date(order.createdAt).toLocaleDateString(),
-        order.status,
-        order.paymentMethod,
-        order.customerInfo?.name || "N/A",
-        total.toFixed(2)
+
+    orders.forEach((order: any, idx: number) => {
+      if (idx > 0) doc.addPage();
+
+      // Header
+      doc.setFontSize(16);
+      doc.text(`Order Report`, 14, 18);
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 26);
+
+      // Order meta
+      doc.setFontSize(12);
+      doc.text(`Order ID: ${order._id}`, 14, 36);
+      doc.setFontSize(10);
+      doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 42);
+      doc.text(`Status: ${order.status}`, 14, 48);
+      doc.text(`Payment: ${order.paymentMethod}`, 14, 54);
+
+      // Customer info
+      const custY = 62;
+      doc.setFontSize(11);
+      doc.text('Customer:', 14, custY);
+      const customerLines = [
+        `Name: ${order.customerInfo?.name || "N/A"}`,
+        `Email: ${order.customerInfo?.email || "N/A"}`,
+        `Phone: ${order.customerInfo?.phone || "N/A"}`,
+        `Address: ${[order.customerInfo?.country, order.customerInfo?.city, order.customerInfo?.area].filter(Boolean).join(', ') || 'N/A'}`
       ];
-    });
-    
-    // Add table to the PDF
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 60,
-      theme: 'striped',
-      headStyles: {
-        fillColor: [59, 130, 246],
-        textColor: 255
+      customerLines.forEach((line, i) => doc.text(line, 20, custY + 6 + i * 6));
+
+      // Items table start position
+      const tableStartY = custY + 6 + customerLines.length * 6 + 6;
+
+      // Build rows: expand project-bundle items to show nested products
+      const tableRows: any[] = [];
+      order.items.forEach((item: any) => {
+        if (item.type === "project-bundle" && Array.isArray(item.products)) {
+          // Bundle header row
+          tableRows.push([
+            `Bundle: ${item.product?.en_name || "Project Bundle"}`,
+            String(item.quantity),
+            '-',
+            '-'
+          ]);
+          // Each product inside bundle as its own row
+          item.products.forEach((p: any) => {
+            const unit = Number(p.price || 0);
+            const total = unit * (item.quantity || 1);
+            tableRows.push([
+              `  - ${p.en_name || p.title || 'Product'}`,
+              String(item.quantity),
+              unit.toFixed(3),
+              total.toFixed(3),
+            ]);
+          });
+        } else {
+          const product = item.product || {};
+          const unit = Number(product.price || 0);
+          const qty = Number(item.quantity || 0);
+          const total = unit * qty;
+          tableRows.push([
+            product.en_name || product.title || "Product",
+            String(qty),
+            unit.toFixed(3),
+            total.toFixed(3),
+          ]);
+        }
+      });
+
+      // AutoTable for items
+      autoTable(doc, {
+        startY: tableStartY,
+        head: [['Item', 'Qty', 'Unit (KD)', 'Total (KD)']],
+        body: tableRows,
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+        styles: { fontSize: 10, cellPadding: 4 },
+        margin: { left: 14, right: 14 }
+      });
+
+      // Calculate totals and place after table
+      const finalY = (doc as any).lastAutoTable?.finalY || tableStartY + (tableRows.length + 2) * 6;
+      let orderTotal = 0;
+      order.items.forEach((item: any) => {
+        if (item.type === "project-bundle" && Array.isArray(item.products)) {
+          const q = Number(item.quantity || 0);
+          orderTotal += item.products.reduce((s: number, p: any) => s + (Number(p.price || 0) * q), 0);
+        } else {
+          orderTotal += (Number(item.product?.price || 0) * Number(item.quantity || 0));
+        }
+      });
+
+      doc.setFontSize(11);
+      doc.text(`Order Total: KD ${orderTotal.toFixed(3)}`, 14, finalY + 12);
+
+      // Optional notes or extra info
+      if (order.notes) {
+        doc.setFontSize(10);
+        const notesY = finalY + 20;
+        doc.text('Notes:', 14, notesY);
+        doc.setFontSize(9);
+        // wrap long notes
+        const splitNotes = doc.splitTextToSize(order.notes, 180);
+        doc.text(splitNotes, 14, notesY + 6);
       }
     });
-    
-    // Save the PDF
-    doc.save("orders-analytics.pdf");
+
+    doc.save("orders-detailed.pdf");
   }
 
   return (
