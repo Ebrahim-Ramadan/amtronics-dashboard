@@ -19,6 +19,8 @@ export const categories = [
   "Resistor",
   "Modules",
   "Sparkfun",
+  "Acebott",
+  "Yahboom",
   "Transistor & Regulator",
   "Accessories",
   "Switch",
