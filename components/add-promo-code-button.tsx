@@ -21,7 +21,7 @@ export function AddPromoCodeButton({ onSuccess }: AddPromoCodeButtonProps) {
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add New Promo Code
+          New
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

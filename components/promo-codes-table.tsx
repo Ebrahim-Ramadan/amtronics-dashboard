@@ -125,7 +125,8 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
       <TableHeader>
         <TableRow>
           <TableHead>Code</TableHead>
-          <TableHead>Percentage</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Value</TableHead>
           <TableHead>Expiry Date</TableHead>
           <TableHead>Active</TableHead>
           <TableHead>Status Toggle</TableHead>
@@ -136,8 +137,25 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
       <TableBody>
         {localPromoCodes.map((promoCode) => (
           <TableRow key={promoCode._id}>
-            <TableCell className="font-medium font-mono text-sm cursor-pointer hover:text-blue-600"  onClick={() => handleCopyId(promoCode.code)}>{promoCode.code}</TableCell>
-            <TableCell>{promoCode.percentage}%</TableCell>
+            <TableCell className="font-medium font-mono text-sm cursor-pointer hover:text-blue-600" onClick={() => handleCopyId(promoCode.code)}>
+              {promoCode.code}
+            </TableCell>
+            <TableCell>
+              {promoCode.type
+                ? promoCode.type === "percentage"
+                  ? "Percentage"
+                  : "Fixed"
+                : promoCode.percentage
+                  ? "Percentage"
+                  : "Fixed"}
+            </TableCell>
+            <TableCell>
+              {promoCode.type === "percentage" || promoCode.percentage
+                ? `${promoCode.value ?? promoCode.percentage}%`
+                : promoCode.value
+                  ? `${promoCode.value} KWD`
+                  : ""}
+            </TableCell>
             <TableCell>{formatDate(promoCode.expiry)}</TableCell>
             <TableCell>
               <Badge variant={promoCode.active ? "default" : "destructive"}>

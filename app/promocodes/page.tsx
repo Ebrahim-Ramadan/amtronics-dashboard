@@ -11,6 +11,7 @@ const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 export interface PromoCode {
   _id: string
   code: string
+  type: "fixed" | "percentage"
   percentage: number
   expiry: string // Use string for Date from API
   active: boolean

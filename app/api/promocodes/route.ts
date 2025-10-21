@@ -1,38 +1,44 @@
-import { type NextRequest, NextResponse } from "next/server"
-import clientPromise from "@/lib/mongodb"
+import { NextRequest, NextResponse } from "next/server";
+import clientPromise from "@/lib/mongodb";
 import { ObjectId } from 'mongodb' // Import ObjectId
 
 export interface PromoCode {
   _id?: string // MongoDB ObjectId
   code: string
-  percentage: number
+  percentage?: number
   expiry: Date
+  value?: number
   active: boolean
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const promoCodeData: PromoCode = await request.json()
+    const promoCodeData = await request.json();
 
     const client = await clientPromise
-    const db = client.db("amtronics") // Replace with your actual database name
-    const collection = db.collection("promocodes") // Replace with your actual collection name
+    const db = client.db("amtronics")
+    const collection = db.collection("promocodes")
 
-    // Basic validation (add more comprehensive validation as needed)
-    if (!promoCodeData.code || promoCodeData.percentage === undefined || !promoCodeData.expiry) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
+    // Validation based on type
+    if (
+      !promoCodeData.code ||
+      !promoCodeData.type ||
+      !promoCodeData.expiry ||
+      (promoCodeData.type === "percentage" && (promoCodeData.value == null || promoCodeData.value < 1 || promoCodeData.value > 100)) ||
+      (promoCodeData.type === "fixed" && (promoCodeData.value == null || promoCodeData.value <= 0))
+    ) {
+      return NextResponse.json({ message: "Missing or invalid required fields" }, { status: 400 });
     }
 
-    // Check if a promo code with the same code already exists
+    // Check for duplicate code
     const existingCode = await collection.findOne({ code: promoCodeData.code })
     if (existingCode) {
-      return NextResponse.json({ message: "Promo code with this code already exists" }, { status: 409 })
+      return NextResponse.json({ message: "Promo code with this code already exists" }, { status: 409 });
     }
 
-    // Destructure to omit _id before inserting
+    // Insert promo code
     const { _id, ...dataToInsert } = promoCodeData;
-
-    const result = await collection.insertOne({ ...dataToInsert, createdAt: new Date() })
+    const result = await collection.insertOne({ ...dataToInsert, createdAt: new Date() });
 
     return NextResponse.json({ message: "Promo code added successfully", promoCodeId: result.insertedId }, { status: 201 })
   } catch (error) {
@@ -96,35 +102,17 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// Add a GET method to fetch promo codes
-export async function GET(request: NextRequest) {
+// GET: List all promo codes
+export async function GET() {
   try {
     const client = await clientPromise;
     const db = client.db("amtronics");
-    const collection = db.collection("promocodes");
-
-    const { searchParams } = new URL(request.url);
-    const sub = searchParams.get("sub");
-    const ids = searchParams.get("ids")?.split(",").map(id => id.trim()).filter(id => id) || []; // Trim and filter empty strings
-
-    let query: any = {};
-    let projection: any = {};
-
-    if (sub === "true" || ids.length > 0) {
-      projection = { _id: 1, code: 1, percentage: 1 };
-      if (ids.length > 0) {
-        query = {
-          _id: { $in: ids.map(id => new ObjectId(id)) } // Filter by provided IDs
-        };
-      }
-    }
-
-    const promocodes = await collection.find(query, { projection }).toArray();
-console.log('Fetched promocodes:', promocodes);
-
+    const promocodes = await db.collection("promocodes")
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
     return NextResponse.json({ promocodes }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching promo codes:", error);
-    return NextResponse.json({ error: "Failed to fetch promo codes" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ message: err.message || "Server error." }, { status: 500 });
   }
 }

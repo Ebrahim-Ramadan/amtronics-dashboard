@@ -11,7 +11,8 @@ interface AddPromoCodeFormProps {
 
 export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) {
   const [code, setCode] = useState("")
-  const [percentage, setPercentage] = useState<number | string>("")
+  const [type, setType] = useState<"percentage" | "fixed">("percentage")
+  const [value, setValue] = useState<string>("")
   const [expiry, setExpiry] = useState("")
   const [active, setActive] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -21,24 +22,27 @@ export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) 
     setIsLoading(true)
 
     // Basic validation
-    if (code.trim() === '' || percentage === "" || !expiry) {
+    if (code.trim() === '' || value === "" || !expiry) {
       toast.error("Please fill in all required fields.")
       setIsLoading(false)
       return
     }
 
-    const percentageNumber = Number(percentage)
-    console.log('percentageNumber', percentageNumber)
-    
-    if (isNaN(percentageNumber) || percentageNumber < 1 || percentageNumber > 100) {
-      toast.error("Percentage must be a number between 0 and 100.")
+    const valueNumber = Number(value)
+    if (isNaN(valueNumber) || valueNumber <= 0) {
+      toast.error("Discount value must be a positive number.")
+      setIsLoading(false)
+      return
+    }
+    if (type === "percentage" && (valueNumber < 1 || valueNumber > 100)) {
+      toast.error("Percentage must be between 1 and 100.")
       setIsLoading(false)
       return
     }
 
     const expiryDate = new Date(expiry)
     const today = new Date()
-    today.setHours(0, 0, 0, 0); // Reset time to compare just dates
+    today.setHours(0, 0, 0, 0)
 
     if (expiryDate < today) {
       toast.error("Expiry date cannot be in the past.")
@@ -54,8 +58,9 @@ export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) 
         },
         body: JSON.stringify({
           code: code.trim(),
-          percentage: percentageNumber,
-          expiry: expiryDate.toISOString(), // Use the validated date
+          type,
+          value: valueNumber,
+          expiry: expiryDate.toISOString(),
           active,
         }),
       })
@@ -65,7 +70,8 @@ export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) 
       if (response.ok) {
         toast.success("Promo code added successfully!")
         setCode("")
-        setPercentage("")
+        setType("percentage")
+        setValue("")
         setExpiry("")
         setActive(true)
         onSuccess?.()
@@ -94,16 +100,31 @@ export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) 
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="percentage">Discount Percentage</Label>
+        <Label htmlFor="type">Discount Type</Label>
+        <select
+          id="type"
+          value={type}
+          onChange={e => setType(e.target.value as "percentage" | "fixed")}
+          className="border rounded px-2 py-1 w-full"
+        >
+          <option value="percentage">Percentage (%)</option>
+          <option value="fixed">Fixed Amount</option>
+        </select>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="value">
+          {type === "percentage" ? "Discount Percentage (%)" : "Discount Amount"}
+        </Label>
         <Input
-          id="percentage"
+          id="value"
           type="number"
-          placeholder="20"
+          step="any" // <-- Add this line
+          placeholder={type === "percentage" ? "20" : "5"}
           required
-          min="0"
-          max="100"
-          value={percentage}
-          onChange={(e) => setPercentage(e.target.value)}
+          min={type === "percentage" ? "1" : "0.01"}
+          max={type === "percentage" ? "100" : undefined}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
         />
       </div>
       <div className="grid gap-2">
@@ -116,15 +137,9 @@ export function AddPromoCodeForm({ onSuccess, onClose }: AddPromoCodeFormProps) 
           onChange={(e) => setExpiry(e.target.value)}
         />
       </div>
-      {/* TODO: Add a checkbox for active status if needed, default to true for now */}
-      {/* <div className="flex items-center gap-2">
-        <input type="checkbox" id="active" checked={active} onChange={(e) => setActive(e.target.checked)} />
-        <Label htmlFor="active">Active</Label>
-      </div> */}
-
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Adding..." : "Add Promo Code"}
       </Button>
     </form>
   )
-} 
+}
