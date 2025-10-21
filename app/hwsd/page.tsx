@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Pencil, Trash, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash, ChevronLeft, ChevronRight, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -22,6 +22,14 @@ interface HWSDFee {
   notes?: string;
 }
 
+const dateOptions = [
+  { label: "Last 30 Days", value: "30days" },
+  { label: "Last 3 Months", value: "3months" },
+  { label: "Last 6 Months", value: "6months" },
+  { label: "Last 1 Year", value: "1year" },
+  { label: "All Time", value: "all" },
+];
+
 export default function HWSDPage() {
   const [fees, setFees] = useState<HWSDFee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,26 +37,32 @@ export default function HWSDPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentFee, setCurrentFee] = useState<HWSDFee | null>(null);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  
+
   // Form states
   const [title, setTitle] = useState("");
   const [serviceType, setServiceType] = useState("hardware");
   const [price, setPrice] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Date filter state
+  const [dateFilter, setDateFilter] = useState("30days");
+
+  // Export loading state
+  const [exportLoading, setExportLoading] = useState<"pdf" | "excel" | null>(null);
+
   useEffect(() => {
     fetchFees();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, dateFilter]);
 
   const fetchFees = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/hwsd?page=${currentPage}&limit=${itemsPerPage}`);
+      const response = await fetch(`/api/hwsd?page=${currentPage}&limit=${itemsPerPage}&dateFilter=${dateFilter}`);
       if (!response.ok) throw new Error("Failed to fetch fees");
       const data = await response.json();
       setFees(data.fees || []);
@@ -58,6 +72,69 @@ export default function HWSDPage() {
       toast.error("Failed to load fees data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch all fees for export (ignores pagination, uses current dateFilter)
+  const fetchAllFeesForExport = async () => {
+    const response = await fetch(`/api/hwsd?limit=100000&dateFilter=${dateFilter}`);
+    if (!response.ok) throw new Error("Failed to fetch all fees");
+    const data = await response.json();
+    return data.fees || [];
+  };
+
+  // Export PDF
+  const handleExportPDF = async () => {
+    // if (!window.confirm("Export all filtered fees to PDF? This may take a while.")) return;
+    setExportLoading("pdf");
+    try {
+      const allFees = await fetchAllFeesForExport();
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+      const doc = new jsPDF();
+      const dataToExport = allFees.map((fee: HWSDFee) => [
+        fee.title,
+        fee.serviceType,
+        fee.price,
+        fee.notes || "",
+        new Date(fee.createdAt).toLocaleDateString(),
+      ]);
+      autoTable(doc, {
+        head: [["Title", "Service Type", "Price (KD)", "Notes", "Created"]],
+        body: dataToExport,
+      });
+      doc.save("hwsd-fees.pdf");
+      toast.success("PDF exported successfully!");
+    } catch (err: any) {
+      toast.error("Failed to export PDF: " + (err.message || err));
+    } finally {
+      setExportLoading(null);
+    }
+  };
+
+  // Export Excel
+  const handleExportExcel = async () => {
+    // if (!window.confirm("Export all filtered fees to Excel? This may take a while.")) return;
+    setExportLoading("excel");
+    try {
+      const allFees = await fetchAllFeesForExport();
+      const XLSX = await import("xlsx");
+      const dataToExport = allFees.map((fee: HWSDFee) => ({
+        Title: fee.title,
+        "Service Type": fee.serviceType,
+        "Price (KD)": fee.price,
+        Notes: fee.notes || "",
+        Created: new Date(fee.createdAt).toLocaleDateString(),
+      }));
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Fees");
+      XLSX.writeFile(workbook, "hwsd-fees.xlsx");
+      toast.success("Excel exported successfully!");
+    } catch (err: any) {
+      toast.error("Failed to export Excel: " + (err.message || err));
+    } finally {
+      setExportLoading(null);
     }
   };
 
@@ -164,6 +241,46 @@ export default function HWSDPage() {
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Hardware & Software Design</h1>
+            {/* Date Filter */}
+            <select
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value)}
+              className="border rounded px-2 py-1 text-sm ml-2"
+              disabled={loading}
+            >
+              {dateOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            {/* Export Buttons */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPDF}
+              className="ml-2"
+              disabled={exportLoading !== null}
+            >
+              {exportLoading === "pdf" ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              Export PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportExcel}
+              className="ml-2"
+              disabled={exportLoading !== null}
+            >
+              {exportLoading === "excel" ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Upload className="h-4 w-4 mr-2" />
+              )}
+              Export Excel
+            </Button>
           </div>
           <Button onClick={handleOpenDialog} className="flex items-center gap-2">
             <Plus size={16} />
@@ -267,7 +384,7 @@ export default function HWSDPage() {
                       </p>
                     </div>
                     <div>
-                      <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                      <nav className="gap-2 isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                         <Button
                           variant="outline"
                           className="rounded-l-md"
