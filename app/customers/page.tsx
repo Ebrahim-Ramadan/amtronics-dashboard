@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
 import dynamic from "next/dynamic";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
 interface Customer {
@@ -42,13 +44,22 @@ export default function CustomersPage() {
   const [modalOrders, setModalOrders] = useState<Order[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState("30days"); // default: last 30 days
+
+  const dateOptions = [
+    { label: "Last 30 Days", value: "30days" },
+    { label: "Last 3 Months", value: "3months" },
+    { label: "Last 6 Months", value: "6months" },
+    { label: "Last 1 Year", value: "1year" },
+    { label: "All Time", value: "all" },
+  ];
 
   useEffect(() => {
     async function fetchCustomers() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/customers?page=${page}&limit=${limit}`);
+        const res = await fetch(`/api/customers?page=${page}&limit=${limit}&dateFilter=${dateFilter}`);
         if (!res.ok) throw new Error("Failed to fetch customers");
         const data = await res.json();
         setCustomers(data.customers || []);
@@ -61,7 +72,7 @@ export default function CustomersPage() {
       }
     }
     fetchCustomers();
-  }, [page]);
+  }, [page, dateFilter]);
 
   const handleCopy = (value: string, label: string) => {
     navigator.clipboard.writeText(value);
@@ -108,6 +119,41 @@ export default function CustomersPage() {
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Customers</h1>
+            <select
+              value={dateFilter}
+              onChange={e => setDateFilter(e.target.value)}
+              className="border rounded px-2 py-1 text-sm ml-2"
+              disabled={loading}
+            >
+              {dateOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const doc = new jsPDF();
+                const dataToExport = uniqueCustomers.map((c) => [
+                  c.name,
+                  c.email,
+                  c.phone,
+                  c.city || "",
+                  c.area || "",
+                  c.orderCount,
+                ]);
+                autoTable(doc, {
+                  head: [["Name", "Email", "Phone", "City", "Area", "Order Count"]],
+                  body: dataToExport,
+                });
+                doc.save("customers.pdf");
+              }}
+              className="ml-2"
+              disabled={loading}
+            >
+              <Download />
+              Export PDF
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -128,8 +174,8 @@ export default function CustomersPage() {
               className="ml-2"
               disabled={loading}
             >
-              <Upload/>
-              Export
+              <Upload />
+              Export Excel
             </Button>
           </div>
         </div>
@@ -280,4 +326,4 @@ export default function CustomersPage() {
       </div>
     </div>
   );
-} 
+}

@@ -5,6 +5,8 @@ import { AddProductButton } from "@/components/add-product-button"
 import { ProductSearch } from "@/components/product-search"
 import { ProductDisplay } from "@/components/product-display"
 import dynamic from "next/dynamic"
+
+import { ProductExportButtons } from "./ProductExportButtons";
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'))
 
 interface Variety {
@@ -138,7 +140,8 @@ async function ProductsDashboardContent({ searchParams }: PageProps) {
 }
 
 export default function ProductsDashboard({ searchParams }: PageProps) {
-  const suspenseKey = `products-${searchParams.search || ""}` // Key depends only on search term
+  const suspenseKey = `products-${searchParams.search || ""}`
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
@@ -148,15 +151,14 @@ export default function ProductsDashboard({ searchParams }: PageProps) {
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu/>
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Products</h1>
+            <ProductExportButtons />
           </div>
-
           {/* Search Bar and Add Product Button */}
           <div className="flex gap-2 w-full md:w-1/2 flex-col md:flex-row">
             <ProductSearch />
             <AddProductButton />
           </div>
         </div>
-
         <Suspense key={suspenseKey} fallback={<LoadingSkeleton />}>
           <ProductsDashboardContent searchParams={searchParams} />
         </Suspense>

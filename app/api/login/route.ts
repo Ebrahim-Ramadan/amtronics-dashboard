@@ -3,10 +3,32 @@ import { buildSessionPayload, createSession, setSessionCookie, verifyPassword } 
 import clientPromise from '@/lib/mongodb'
 import type { Role, UserDoc } from '@/lib/types'
 
+// Add this import
+const admins = JSON.parse(process.env.ADMIN_CREDENTIALS || "[]");
+
 export async function POST(request: Request) {
   const { email, password } = await request.json();
 
-  // Only check DB users (no .env static admins)
+  // 1. Check .env hardcoded admins first
+  const admin = admins.find((a: any) => a.email === email);
+  if (admin) {
+    if (admin.password !== password) {
+      return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+    }
+    // Build session payload for admin
+    const payload = buildSessionPayload({
+      email: admin.email,
+      role: "admin",
+      engineerName: "Admin",
+      allowedEngineers: [],
+    });
+    const token = createSession(payload);
+    const response = NextResponse.json({ message: 'Login successful', role: "admin" }, { status: 200 });
+    setSessionCookie(response, token);
+    return response;
+  }
+
+  // 2. If not found in .env, check DB users
   const client = await clientPromise;
   const db = client.db('amtronics');
   const user = await db.collection<UserDoc>('users').findOne({ email });
