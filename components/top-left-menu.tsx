@@ -167,6 +167,19 @@ export const Topleftmenu = () => {
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link
+                href="/expenses"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
+                  pathname === '/expenses' && 'bg-gray-100 text-blue-600'
+                )}
+                aria-current={pathname === '/expenses' ? 'page' : undefined}
+              >
+                <Package className="h-4 w-4" />
+                Expenses
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
                 href="/analytics"
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
