@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, User, UserCog, UserCheck, X, Plus, XIcon, Search, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+
+// Add a modal/dialog for variant selection
+import { Dialog as VariantDialog, DialogContent as VariantDialogContent, DialogHeader as VariantDialogHeader, DialogTitle as VariantDialogTitle } from "@/components/ui/dialog";
 
 const ENGINEER_OPTIONS = [
   { value: "Ahmed", label: "Ahmed", icon: User },
@@ -32,6 +35,8 @@ interface Product {
   id: number;
   en_name: string;
   ar_name: string;
+  hasVarieties?: boolean;
+  varieties?: any[];
   sku: string;
 }
 
@@ -60,6 +65,9 @@ export default function AddProjectForm() {
   const [searchLoading, setSearchLoading] = useState<{ [key: string]: boolean }>({});
   const [showDropdown, setShowDropdown] = useState<{ [key: string]: boolean }>({});
   const [searchTimeouts, setSearchTimeouts] = useState<{ [key: string]: NodeJS.Timeout }>({});
+
+  // Variant selection dialog state
+  const [variantDialog, setVariantDialog] = useState<{ open: boolean, variants: any[], onSelect: (variant: any) => void } | null>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -144,8 +152,41 @@ export default function AddProjectForm() {
     setSearchTimeouts(prev => ({ ...prev, [searchKey]: timeoutId }));
   };
 
-// In selectProduct, prevent duplicate product selection
-const selectProduct = (product: Product, engineerIdx: number, bundleIdx: number) => {
+const selectProduct = async (product: Product, engineerIdx: number, bundleIdx: number) => {
+  // Fetch full product details to check for varieties
+  let fullProduct = product;
+  try {
+    const res = await fetch(`/api/products/${product._id || product.id}`);
+    if (res.ok) {
+      fullProduct = await res.json();
+    }
+  } catch (e) {
+    // fallback to original product
+  }
+console.log('fullProduct', fullProduct);
+
+  // If the product has varieties, show the variant dialog and STOP here
+  if (fullProduct.hasVarieties && Array.isArray(fullProduct.varieties) && fullProduct.varieties.length > 0) {
+      setVariantDialog({
+      open: true,
+      variants: fullProduct.varieties,
+      onSelect: (variant) => {
+        // Save only the variant in the name, keep id as product._id
+        const newEngineers = [...form.engineers];
+        newEngineers[engineerIdx].bundle[bundleIdx].id = fullProduct._id?.toString() || fullProduct.id?.toString();
+        newEngineers[engineerIdx].bundle[bundleIdx].name = `${fullProduct.en_name} - ${variant.en_name_variant}`;
+        setForm({ ...form, engineers: newEngineers });
+        setProductSearch(prev => ({ ...prev, [`${engineerIdx}-${bundleIdx}`]: `${fullProduct.en_name} - ${variant.en_name_variant}` }));
+        setShowDropdown(prev => ({ ...prev, [`${engineerIdx}-${bundleIdx}`]: false }));
+        setError(null);
+        setVariantDialog(null);
+      }
+    });
+    // Do NOT add the product yet!
+    return;
+  }
+
+  // Only add the product if it does NOT have varieties
   const newEngineers = [...form.engineers];
   // Check for duplicate product in the bundle
   const alreadyExists = newEngineers[engineerIdx].bundle.some(
@@ -180,19 +221,19 @@ const selectProduct = (product: Product, engineerIdx: number, bundleIdx: number)
       engineers: form.engineers.filter((_, i) => i !== idx),
     });
   }
-function addBundle(idx: number) {
-  const newEngineers = [...form.engineers];
-  // Prevent adding duplicate products
-  const bundleProductIds = newEngineers[idx].bundle.map(b => b.id);
-  // Only add if last bundle is filled (to avoid empty duplicates)
-  if (newEngineers[idx].bundle.some(item => !item.id.trim())) return;
+  function addBundle(idx: number) {
+    const newEngineers = [...form.engineers];
+    // Prevent adding duplicate products
+    const bundleProductIds = newEngineers[idx].bundle.map(b => b.id);
+    // Only add if last bundle is filled (to avoid empty duplicates)
+    if (newEngineers[idx].bundle.some(item => !item.id.trim())) return;
 
-  // You may want to show an error if needed
-  // setError("Please select a product before adding another.");
+    // You may want to show an error if needed
+    // setError("Please select a product before adding another.");
 
-  newEngineers[idx].bundle.push({ id: "", name: "", quantity: 1 });
-  setForm({ ...form, engineers: newEngineers });
-}
+    newEngineers[idx].bundle.push({ id: "", name: "", quantity: 1 });
+    setForm({ ...form, engineers: newEngineers });
+  }
   function removeBundle(idx: number, bundleIdx: number) {
     const newEngineers = [...form.engineers];
     newEngineers[idx].bundle = newEngineers[idx].bundle.filter((_, i) => i !== bundleIdx);
@@ -234,158 +275,186 @@ function addBundle(idx: number) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <Button onClick={() => setOpen(true)}>+ Add Project</Button>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle> Add Project</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <div className="text-red-500 mb-2">{error}</div>}
-          <div>
-            <Label className="mb-1" htmlFor="project-name">Project Name</Label>
-            <Input
-              id="project-name"
-              className="max-w-full w-full"
-              name="name"
-              value={form.name}
-              onChange={handleFormChange}
-              required
-            />
-          </div>
-          {form.engineers.map((eng, idx) => {
-            return (
-              <div key={idx} className="border rounded p-2 mb-2">
-                <div className="flex flex-col sm:items-center justify-between gap-2 mb-2">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
-                    <Label htmlFor={`engineer-name-${idx}`} className="font-semibold">Engineer Name</Label>
-                    <Input
-                      id={`engineer-name-${idx}`}
-                      className="w-full sm:max-w-56"
-                      placeholder="Type engineer name"
-                      value={eng.name}
-                      onChange={e => handleEngineerNameChange(e, idx)}
-                      required
-                    />
-                  <Button type="button" variant="destructive" size="sm" onClick={() => removeEngineer(idx)} disabled={form.engineers.length === 1} className="w-full sm:w-auto mt-2 sm:mt-0">Remove <X/></Button>
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <Button onClick={() => setOpen(true)}>+ Add Project</Button>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle> Add Project</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <div className="text-red-500 mb-2">{error}</div>}
+            <div>
+              <Label className="mb-1" htmlFor="project-name">Project Name</Label>
+              <Input
+                id="project-name"
+                className="max-w-full w-full"
+                name="name"
+                value={form.name}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
+            {form.engineers.map((eng, idx) => {
+              return (
+                <div key={idx} className="border rounded p-2 mb-2">
+                  <div className="flex flex-col sm:items-center justify-between gap-2 mb-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                      <Label htmlFor={`engineer-name-${idx}`} className="font-semibold">Engineer Name</Label>
+                      <Input
+                        id={`engineer-name-${idx}`}
+                        className="w-full sm:max-w-56"
+                        placeholder="Type engineer name"
+                        value={eng.name}
+                        onChange={e => handleEngineerNameChange(e, idx)}
+                        required
+                      />
+                    <Button type="button" variant="destructive" size="sm" onClick={() => removeEngineer(idx)} disabled={form.engineers.length === 1} className="w-full sm:w-auto mt-2 sm:mt-0">Remove <X/></Button>
 
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                      <Label htmlFor={`engineer-email-${idx}`} className="font-semibold">Engineer Email</Label>
+                      <Input
+                        id={`engineer-email-${idx}`}
+                        className="w-full sm:max-w-56"
+                        placeholder="Type engineer email"
+                        value={eng.email}
+                        onChange={e => handleEngineerEmailChange(e, idx)}
+                        required
+                        type="email"
+                      />
+                    </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
-                    <Label htmlFor={`engineer-email-${idx}`} className="font-semibold">Engineer Email</Label>
-                    <Input
-                      id={`engineer-email-${idx}`}
-                      className="w-full sm:max-w-56"
-                      placeholder="Type engineer email"
-                      value={eng.email}
-                      onChange={e => handleEngineerEmailChange(e, idx)}
-                      required
-                      type="email"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label className="font-semibold">Bundle Products</Label>
-                  {eng.bundle.map((item, bundleIdx) => {
-                    const searchKey = `${idx}-${bundleIdx}`;
-                    return (
-                      <div key={bundleIdx} className="flex flex-col gap-2 my-2 w-full relative">
-                        <div className="flex flex-row items-start sm:items-center gap-2 w-full">
-                          <div className="relative flex-1">
-                            <Input
-                              placeholder="Search for product by name..."
-                              className="w-full"
-                              value={productSearch[searchKey] || item.name || ""}
-                              onChange={(e) => handleProductSearch(e.target.value, idx, bundleIdx)}
-                              required
-                            />
-                            <Search className="absolute bg-white right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            
-                            {/* Search Results Dropdown */}
-                            {showDropdown[searchKey] && (
-                              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                {searchLoading[searchKey] ? (
-                                  <div className="p-3 text-center">
-                                    <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                                    <span className="text-sm text-gray-500">Searching...</span>
-                                  </div>
-                                ) : searchResults[searchKey]?.length > 0 ? (
-                                  searchResults[searchKey].map((product) => (
-                                    <div
-                                      key={product.id}
-                                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                                      onClick={() => selectProduct(product, idx, bundleIdx)}
-                                    >
-                                      <div className="font-medium text-sm">{product.en_name}</div>
-                                      <div className="text-xs text-gray-500">
-                                        ID: {product.id} • SKU: {product.sku}
-                                      </div>
+                  <div>
+                    <Label className="font-semibold">Bundle Products</Label>
+                    {eng.bundle.map((item, bundleIdx) => {
+                      const searchKey = `${idx}-${bundleIdx}`;
+                      return (
+                        <div key={bundleIdx} className="flex flex-col gap-2 my-2 w-full relative">
+                          <div className="flex flex-row items-start sm:items-center gap-2 w-full">
+                            <div className="relative flex-1">
+                              <Input
+                                placeholder="Search for product by name..."
+                                className="w-full"
+                                value={productSearch[searchKey] || item.name || ""}
+                                onChange={(e) => handleProductSearch(e.target.value, idx, bundleIdx)}
+                                required
+                              />
+                              <Search className="absolute bg-white right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                              
+                              {/* Search Results Dropdown */}
+                              {showDropdown[searchKey] && (
+                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                  {searchLoading[searchKey] ? (
+                                    <div className="p-3 text-center">
+                                      <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                      <span className="text-sm text-gray-500">Searching...</span>
                                     </div>
-                                  ))
-                                ) : (
-                                  <div className="p-3 text-center text-sm text-gray-500">
-                                    No products found
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                                  ) : searchResults[searchKey]?.length > 0 ? (
+                                    searchResults[searchKey].map((product) => (
+                                      <div
+                                        key={product.id}
+                                        className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                        onClick={() => selectProduct(product, idx, bundleIdx)}
+                                      >
+                                        <div className="font-medium text-sm">{product.en_name}</div>
+                                        <div className="text-xs text-gray-500">
+                                          ID: {product.id} • SKU: {product.sku}
+                                        </div>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="p-3 text-center text-sm text-gray-500">
+                                      No products found
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {/* Quantity input */}
+                            <Input
+                              type="number"
+                              min={1}
+                              className="w-20"
+                              value={item.quantity ?? 1}
+                              onChange={(e) => handleFormChange(e, idx, bundleIdx, "quantity")}
+                              placeholder="Qty"
+                            />
+                            <Button 
+                              type="button" 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => removeBundle(idx, bundleIdx)} 
+                              disabled={eng.bundle.length === 1} 
+                              className="w-auto"
+                            >
+                              <XIcon/>
+                            </Button>
                           </div>
-                          {/* Quantity input */}
-                          <Input
-                            type="number"
-                            min={1}
-                            className="w-20"
-                            value={item.quantity ?? 1}
-                            onChange={(e) => handleFormChange(e, idx, bundleIdx, "quantity")}
-                            placeholder="Qty"
-                          />
-                          <Button 
-                            type="button" 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => removeBundle(idx, bundleIdx)} 
-                            disabled={eng.bundle.length === 1} 
-                            className="w-auto"
-                          >
-                            <XIcon/>
-                          </Button>
+                          
+                          {/* Show selected product ID */}
+                          {item.id && (
+                            <div className="text-xs text-gray-600 pl-2">
+                              Selected Product ID: <span className="font-mono bg-gray-100 px-1 rounded">{item.id}</span>
+                            </div>
+                          )}
                         </div>
-                        
-                        {/* Show selected product ID */}
-                        {item.id && (
-                          <div className="text-xs text-gray-600 pl-2">
-                            Selected Product ID: <span className="font-mono bg-gray-100 px-1 rounded">{item.id}</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => addBundle(idx)}
-                    className="w-full sm:w-auto mt-2"
-                    disabled={eng.bundle.some((item) => !item.id.trim())}
-                  >
-                    <Plus/>
-                    Add Product
-                  </Button>
+                      );
+                    })}
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => addBundle(idx)}
+                      className="w-full sm:w-auto mt-2"
+                      disabled={eng.bundle.some((item) => !item.id.trim())}
+                    >
+                      <Plus/>
+                      Add Product
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-          <div className="flex justify-end mt-4">
-            <Button type="button" size="sm" onClick={addEngineer} className=" w-full sm:w-auto">
-              <Plus/>
-              Add Engineer
-            </Button>
-          </div>
+              );
+            })}
+            <div className="flex justify-end mt-4">
+              <Button type="button" size="sm" onClick={addEngineer} className=" w-full sm:w-auto">
+                <Plus/>
+                Add Engineer
+              </Button>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button type="submit" disabled={submitting || isPending} className="w-full sm:w-auto">{submitting || isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Save Project"}</Button>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">Cancel</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button type="submit" disabled={submitting || isPending} className="w-full sm:w-auto">{submitting || isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Save Project"}</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Variant Picker Dialog */}
+      {variantDialog?.open && (
+        <VariantDialog open={variantDialog.open} onOpenChange={() => setVariantDialog(null)}>
+          <VariantDialogContent>
+            <VariantDialogHeader>
+              <VariantDialogTitle>Choose a Variant</VariantDialogTitle>
+            </VariantDialogHeader>
+            <div className="space-y-2">
+              {variantDialog.variants.map((variant, idx) => (
+                <Button
+                  key={idx}
+                  className="w-full flex items-center gap-2"
+                  variant="outline"
+                  onClick={() => variantDialog.onSelect(variant)}
+                >
+                  {variant.image && <img src={variant.image} alt={variant.en_name_variant} className="w-8 h-8 object-contain" />}
+                  <span>{variant.en_name_variant}</span>
+                  <span className="ml-auto text-xs text-gray-500">{variant.price} KD</span>
+                </Button>
+              ))}
+            </div>
+            <Button className="mt-4 w-full" variant="secondary" onClick={() => setVariantDialog(null)}>Cancel</Button>
+          </VariantDialogContent>
+        </VariantDialog>
+      )}
+    </>
   );
 }

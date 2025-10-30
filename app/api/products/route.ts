@@ -77,7 +77,8 @@ export async function GET(request: NextRequest) {
       sku: 1,
       price: 1,
       model_3d_url: 1,
-
+      hasVarieties: 1,
+      varieties: 1,
     }
     }
     else{
