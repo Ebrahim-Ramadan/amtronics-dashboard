@@ -53,31 +53,34 @@ export function OrderDetailsModal({
   const getItemsCount = () =>
     order.items.reduce((total, item) => total + item.quantity, 0);
 
-  const getItemsTotal = () =>
-    order.items.reduce((total, item) => {
-      if ("product" in item) {
-        return total + Number(item.product.price || 0) * item.quantity;
-      } else {
-        const bundleTotal =
-          Array.isArray(item.products)
-            ? item.products.reduce((sum, p) => sum + Number(p.price || 0), 0)
-            : 0;
-        return total + item.quantity * bundleTotal;
-      }
-    }, 0);
+const getItemsTotal = () =>
+  order.items.reduce((total, item) => {
+    if ("product" in item) {
+      return total + Number(item.product.price || 0) * item.quantity;
+    } else if ("products" in item && Array.isArray(item.products)) {
+      // Sum (product.price * product.quantity) for each product, then multiply by bundle quantity
+      const bundleSum = item.products.reduce(
+        (sum, p) => sum + Number(p.price || 0) * (p.quantity || 1),
+        0
+      );
+      return total + item.quantity * bundleSum;
+    }
+    return total;
+  }, 0);
 
-  const getTotalAveCost = () =>
-    order.items.reduce((total, item) => {
-      if ("product" in item) {
-        return total + Number(item.product.ave_cost || 0) * item.quantity;
-      } else {
-        const bundleCost =
-          Array.isArray(item.products)
-            ? item.products.reduce((sum, p) => sum + Number(p.ave_cost || 0), 0)
-            : 0;
-        return total + item.quantity * bundleCost;
-      }
-    }, 0);
+const getTotalAveCost = () =>
+  order.items.reduce((total, item) => {
+    if ("product" in item) {
+      return total + Number(item.product.ave_cost || 0) * item.quantity;
+    } else if ("products" in item && Array.isArray(item.products)) {
+      const bundleCost = item.products.reduce(
+        (sum, p) => sum + Number(p.ave_cost || 0) * (p.quantity || 1),
+        0
+      );
+      return total + item.quantity * bundleCost;
+    }
+    return total;
+  }, 0);
 
   const getCalculatedTotal = () => getItemsTotal() - (order.discount || 0);
 
@@ -202,57 +205,59 @@ export function OrderDetailsModal({
                   <span className="font-medium">{getItemsCount()}</span>
                 </div>
 
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
-                  <span className="font-medium">
-                    KD {getItemsTotal().toFixed(2)}
-                  </span>
-                </div>
 
-                <div className="flex justify-between text-sm">
-                  <span>Shipping Fee</span>
-                  <span className="font-medium">
-                    KD {(order.shippingFee || 0).toFixed(2)}
-                  </span>
-                </div>
 
-                {order.discount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>Discount</span>
-                    <span className="font-medium text-green-700">
-                      -KD {order.discount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
 
-               {/* Payment Method */}
-{order.paymentMethod && (
+<div className="flex justify-between text-sm">
+  <span>Subtotal</span>
+  <span className="font-medium">
+    KD {order.total?.toFixed(2) ?? getItemsTotal().toFixed(2)}
+  </span>
+</div>
+
+<div className="flex justify-between text-sm">
+  <span>Shipping Fee</span>
+  <span className="font-medium">
+    KD {(order.shippingFee || 0).toFixed(2)}
+  </span>
+</div>
+
+{order.discount > 0 && (
   <div className="flex justify-between text-sm">
-    <span>Payment Method</span>
-    <span className={`font-medium px-2 ${order.paymentMethod === "cod" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-    {order.paymentMethod == "cod" ? "COD" : "in shop (KNET)"}
+    <span>Discount</span>
+    <span className="font-medium text-green-700">
+      -KD {order.discount.toFixed(2) }
     </span>
   </div>
 )}
 
-                <Separator />
+{order.paymentMethod && (
+  <div className="flex justify-between text-sm">
+    <span>Payment Method</span>
+    <span className={`font-medium px-2 ${order.paymentMethod === "cod" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+      {order.paymentMethod == "cod" ? "COD" : "in shop (KNET)"}
+    </span>
+  </div>
+)}
 
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
-                  <span className="text-[#00BED5]">
-                    KD {getCalculatedTotal().toFixed(2)}
-                  </span>
-                </div>
+<Separator />
 
-                <div className="flex justify-between text-sm text-green-700 font-bold">
-                  <span>Net Profit</span>
-                  <span>KD {netProfit.toFixed(2)}</span>
-                </div>
+<div className="flex justify-between text-lg font-bold">
+  <span>Total</span>
+  <span className="text-[#00BED5]">
+    KWD {(Number(order.total ?? 0) + Number(order.shippingFee ?? 0)).toFixed(2)}
+  </span>
+</div>
 
-                <div className="text-xs text-muted-foreground text-right">
-                  (Sales - Ave. Cost) <br />
-                  KD {totalSales.toFixed(2)} - KD {totalAveCost.toFixed(2)}
-                </div>
+<div className="flex justify-between text-sm text-green-700 font-bold">
+  <span>Net Profit</span>
+  <span>KD {(order.total - totalAveCost).toFixed(2)}</span>
+</div>
+
+<div className="text-xs text-muted-foreground text-right">
+  (Sales - Ave. Cost) <br />
+  KD {order.total?.toFixed(2) ?? "0.00"} - KD {totalAveCost.toFixed(2)}
+</div>
 
                 <div className="flex justify-between text-sm text-gray-600">
                   <span className="flex items-center gap-1">
@@ -368,6 +373,9 @@ export function OrderDetailsModal({
             </Card>
           </div>
 
+
+
+
           {/* Print View (receipt style) */}
           <div className="hidden print:block w-[340px] mx-auto text-black font-mono text-xs bg-white p-2">
             {/* Logo and header */}
@@ -422,13 +430,41 @@ export function OrderDetailsModal({
             <div className="border-b my-2" />
             {/* Totals */}
             <div className="flex flex-col gap-1 mb-2">
-              <div className="flex justify-between"><span>Subtotal</span><span>{getItemsTotal().toFixed(3)} KD</span></div>
-              <div className="flex justify-between"><span>Shipping</span><span>{(order.shippingFee || 0).toFixed(3)} KD</span></div>
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{(order.total || getItemsTotal())} KD</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>{(order.shippingFee || 0).toFixed(3)} KD</span>
+              </div>
               {order.discount > 0 && (
-                <div className="flex justify-between"><span>Discount</span><span>-{order.discount.toFixed(3)} KD</span></div>
+                <div className="flex justify-between">
+                  <span>Discount</span>
+                  <span>-{order.discount.toFixed(3)} KD</span>
+                </div>
               )}
-              <div className="flex justify-between font-bold text-base"><span>Total</span><span>{getCalculatedTotal().toFixed(3)} KD</span></div>
-              <div className="flex justify-between"><span>Remaining</span><span>{(-getCalculatedTotal()).toFixed(3)} KD</span></div>
+              <div className="flex justify-between font-bold text-base">
+                <span>Total</span>
+                <span>
+    {(
+      (order.total || getItemsTotal()) +
+      (order.shippingFee || 0)
+    ).toFixed(3)} KD
+  </span>
+              </div>
+              {/* <div className="flex justify-between">
+                <span>Remaining</span>
+                <span>
+                  {(
+                    -(
+                      getItemsTotal() +
+                      (order.shippingFee || 0) -
+                      (order.discount || 0)
+                    )
+                  ).toFixed(3)} KD
+                </span>
+              </div> */}
             </div>
             <div className="border-b my-2" />
             {/* Footer */}
@@ -446,6 +482,12 @@ export function OrderDetailsModal({
               />
             </div>
           </div>
+
+
+
+
+
+
           {/* Print Button (only visible on screen) */}
           <Button
             onClick={handlePrint}

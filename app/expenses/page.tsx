@@ -1,32 +1,21 @@
 import dynamic from "next/dynamic";
-import clientPromise from "@/lib/mongodb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { headers } from "next/headers";
 
-// client components
-const ExpensesTable = dynamic(() => import('@/components/expenses/ExpensesTable'), );
-const ExpenseForm = dynamic(() => import('@/components/expenses/ExpenseForm'), );
-
+const ExpensesTable = dynamic(() => import('@/components/expenses/ExpensesTable'));
+const ExpenseForm = dynamic(() => import('@/components/expenses/ExpenseForm'));
 const Topleftmenu = dynamic(() => import('@/components/top-left-menu'));
 
 export default async function ExpensesPage() {
-  const client = await clientPromise;
-  const db = client.db("amtronics");
-  const expenses = await db
-    .collection("expenses")
-    .find({})
-    .sort({ date: -1 })
-    .toArray();
+  // Get host for absolute URL
+  const host = headers().get("host");
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
 
-  // Convert dates to ISO strings for props
-  const serialized = expenses.map(e => ({
-    _id: e._id.toString(),
-    name: e.name,
-    cost: e.cost,
-    quantity: e.quantity,
-    note: e.note,
-    date: e.date ? new Date(e.date).toISOString() : null,
-    createdAt: e.createdAt ? new Date(e.createdAt).toISOString() : null,
-  }));
+  const res = await fetch(`${baseUrl}/api/expenses`, {
+    cache: "no-store",
+  });
+  const { expenses: serialized } = await res.json();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -41,9 +30,7 @@ export default async function ExpensesPage() {
             <CardTitle>Manage Expenses</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* server-side data passed into client table/form */}
             <div className="space-y-4">
-              {/* ExpenseForm without initial expense acts as "Add" */}
               <ExpenseForm initialExpense={null} />
               <ExpensesTable initialExpenses={serialized} />
             </div>

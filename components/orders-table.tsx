@@ -21,6 +21,8 @@ interface OrdersTableProps {
 }
 
 export function OrdersTable({ orders }: OrdersTableProps) {
+  console.log('orders', orders);
+  
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -42,16 +44,22 @@ export function OrdersTable({ orders }: OrdersTableProps) {
     }, 0)
   }
 
-  const getItemsSubtotal = (items: (OrderItem | ProjectBundleItem)[]) => {
-    return items.reduce((total, item) => {
-      if ("product" in item) {
-        return total + item.product.price * item.quantity
-      } else if ("products" in item && Array.isArray(item.products)) {
-        return total + item.quantity * (item.products ?? []).reduce((sum, p) => sum + (p.price || 0), 0)
-      }
-      return total
-    }, 0)
-  }
+// Correct subtotal for project-bundle items
+const getItemsSubtotal = (items: (OrderItem | ProjectBundleItem)[]) => {
+  return items.reduce((total, item) => {
+    if ("product" in item) {
+      return total + item.product.price * item.quantity;
+    } else if ("products" in item && Array.isArray(item.products)) {
+      // Sum (product.price * product.quantity) for each product, then multiply by bundle quantity
+      const bundleSum = item.products.reduce(
+        (sum, p) => sum + (p.price || 0) * (p.quantity || 1),
+        0
+      );
+      return total + item.quantity * bundleSum;
+    }
+    return total;
+  }, 0);
+};
 
   const getCalculatedTotal = (order: Order) => {
     const subtotal = getItemsSubtotal(order.items)
@@ -119,13 +127,13 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">
-                  KD{getCalculatedTotal(order).toFixed(2)}
-                  {order.discount > 0 && (
-                    <div className="text-sm text-green-600">-KD {order.discount.toFixed(2)} discount</div>
-                  )}
-                </TableCell>
+  KWD {order.total?.toFixed(2) ?? "0.00"}
+  {order.discount > 0 && (
+    <div className="text-sm text-green-600">-KWD {order.discount.toFixed(2)} discount</div>
+  )}
+</TableCell>
                 {/* <TableCell className="font-medium">
-                  KD{order.shippingFee?.toFixed(2) ?? "0.00"}
+                  KWD{order.shippingFee?.toFixed(2) ?? "0.00"}
                 </TableCell> */}
                 <TableCell>
                   <Badge
