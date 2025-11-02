@@ -15,6 +15,7 @@ import {
   MapPin,
   Copy,
   Printer,
+  AlertCircle,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -53,34 +54,34 @@ export function OrderDetailsModal({
   const getItemsCount = () =>
     order.items.reduce((total, item) => total + item.quantity, 0);
 
-const getItemsTotal = () =>
-  order.items.reduce((total, item) => {
-    if ("product" in item) {
-      return total + Number(item.product.price || 0) * item.quantity;
-    } else if ("products" in item && Array.isArray(item.products)) {
-      // Sum (product.price * product.quantity) for each product, then multiply by bundle quantity
-      const bundleSum = item.products.reduce(
-        (sum, p) => sum + Number(p.price || 0) * (p.quantity || 1),
-        0
-      );
-      return total + item.quantity * bundleSum;
-    }
-    return total;
-  }, 0);
+  const getItemsTotal = () =>
+    order.items.reduce((total, item) => {
+      if ("product" in item) {
+        return total + Number(item.product.price || 0) * item.quantity;
+      } else if ("products" in item && Array.isArray(item.products)) {
+        // Sum (product.price * product.quantity) for each product, then multiply by bundle quantity
+        const bundleSum = item.products.reduce(
+          (sum, p) => sum + Number(p.price || 0) * (p.quantity || 1),
+          0
+        );
+        return total + item.quantity * bundleSum;
+      }
+      return total;
+    }, 0);
 
-const getTotalAveCost = () =>
-  order.items.reduce((total, item) => {
-    if ("product" in item) {
-      return total + Number(item.product.ave_cost || 0) * item.quantity;
-    } else if ("products" in item && Array.isArray(item.products)) {
-      const bundleCost = item.products.reduce(
-        (sum, p) => sum + Number(p.ave_cost || 0) * (p.quantity || 1),
-        0
-      );
-      return total + item.quantity * bundleCost;
-    }
-    return total;
-  }, 0);
+  const getTotalAveCost = () =>
+    order.items.reduce((total, item) => {
+      if ("product" in item) {
+        return total + Number(item.product.ave_cost || 0) * item.quantity;
+      } else if ("products" in item && Array.isArray(item.products)) {
+        const bundleCost = item.products.reduce(
+          (sum, p) => sum + Number(p.ave_cost || 0) * (p.quantity || 1),
+          0
+        );
+        return total + item.quantity * bundleCost;
+      }
+      return total;
+    }, 0);
 
   const getCalculatedTotal = () => getItemsTotal() - (order.discount || 0);
 
@@ -123,6 +124,33 @@ const getTotalAveCost = () =>
       router.refresh();
     } catch (error) {
       toast.error("Failed to cancel order");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    // Show confirmation dialog
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this order? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/orders/${order._id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete order");
+      toast.success("Order has been deleted!");
+      onOpenChange(false);
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to delete order");
     } finally {
       setIsLoading(false);
     }
@@ -197,6 +225,7 @@ const getTotalAveCost = () =>
                     >
                       {isLoading ? "Canceling Order..." : "Cancel Order"}
                     </Button>
+                    
                   </div>
                 )}
 
@@ -205,59 +234,66 @@ const getTotalAveCost = () =>
                   <span className="font-medium">{getItemsCount()}</span>
                 </div>
 
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal</span>
+                  <span className="font-medium">
+                    KD {order.total?.toFixed(2) ?? getItemsTotal().toFixed(2)}
+                  </span>
+                </div>
 
+                <div className="flex justify-between text-sm">
+                  <span>Shipping Fee</span>
+                  <span className="font-medium">
+                    KD {(order.shippingFee || 0).toFixed(2)}
+                  </span>
+                </div>
 
+                {order.discount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>Discount</span>
+                    <span className="font-medium text-green-700">
+                      -KD {order.discount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
 
-<div className="flex justify-between text-sm">
-  <span>Subtotal</span>
-  <span className="font-medium">
-    KD {order.total?.toFixed(2) ?? getItemsTotal().toFixed(2)}
-  </span>
-</div>
+                {order.paymentMethod && (
+                  <div className="flex justify-between text-sm">
+                    <span>Payment Method</span>
+                    <span
+                      className={`font-medium px-2 ${
+                        order.paymentMethod === "cod"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {order.paymentMethod == "cod" ? "COD" : "in shop (KNET)"}
+                    </span>
+                  </div>
+                )}
 
-<div className="flex justify-between text-sm">
-  <span>Shipping Fee</span>
-  <span className="font-medium">
-    KD {(order.shippingFee || 0).toFixed(2)}
-  </span>
-</div>
+                <Separator />
 
-{order.discount > 0 && (
-  <div className="flex justify-between text-sm">
-    <span>Discount</span>
-    <span className="font-medium text-green-700">
-      -KD {order.discount.toFixed(2) }
-    </span>
-  </div>
-)}
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span className="text-[#00BED5]">
+                    KWD{" "}
+                    {(
+                      Number(order.total ?? 0) + Number(order.shippingFee ?? 0)
+                    ).toFixed(2)}
+                  </span>
+                </div>
 
-{order.paymentMethod && (
-  <div className="flex justify-between text-sm">
-    <span>Payment Method</span>
-    <span className={`font-medium px-2 ${order.paymentMethod === "cod" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-      {order.paymentMethod == "cod" ? "COD" : "in shop (KNET)"}
-    </span>
-  </div>
-)}
+                <div className="flex justify-between text-sm text-green-700 font-bold">
+                  <span>Net Profit</span>
+                  <span>KD {(order.total - totalAveCost).toFixed(2)}</span>
+                </div>
 
-<Separator />
-
-<div className="flex justify-between text-lg font-bold">
-  <span>Total</span>
-  <span className="text-[#00BED5]">
-    KWD {(Number(order.total ?? 0) + Number(order.shippingFee ?? 0)).toFixed(2)}
-  </span>
-</div>
-
-<div className="flex justify-between text-sm text-green-700 font-bold">
-  <span>Net Profit</span>
-  <span>KD {(order.total - totalAveCost).toFixed(2)}</span>
-</div>
-
-<div className="text-xs text-muted-foreground text-right">
-  (Sales - Ave. Cost) <br />
-  KD {order.total?.toFixed(2) ?? "0.00"} - KD {totalAveCost.toFixed(2)}
-</div>
+                <div className="text-xs text-muted-foreground text-right">
+                  (Sales - Ave. Cost) <br />
+                  KD {order.total?.toFixed(2) ?? "0.00"} - KD{" "}
+                  {totalAveCost.toFixed(2)}
+                </div>
 
                 <div className="flex justify-between text-sm text-gray-600">
                   <span className="flex items-center gap-1">
@@ -276,6 +312,7 @@ const getTotalAveCost = () =>
                   <Printer className="w-4 h-4 mr-2" />
                   Print Order
                 </Button>
+                
               </CardContent>
             </Card>
 
@@ -361,10 +398,8 @@ const getTotalAveCost = () =>
                           KD {(price * item.quantity).toFixed(2)}
                         </p>
                         <p className="text-xs font-semibold text-[#00BED5]">
-                           {item.welding ? "Yes" : "No"} welding
+                          {item.welding ? "Yes" : "No"} welding
                         </p>
-
-
                       </div>
                     </div>
                   );
@@ -373,29 +408,48 @@ const getTotalAveCost = () =>
             </Card>
           </div>
 
-
-
-
           {/* Print View (receipt style) */}
           <div className="hidden print:block w-[340px] mx-auto text-black font-mono text-xs bg-white p-2">
             {/* Logo and header */}
             <div className="flex flex-col items-center border-b pb-2 mb-2">
-              <img src="/amtronics-logo.webp" alt="Am Tronics Logo" className="w-16 h-16 object-contain mb-1" />
+              <img
+                src="/amtronics-logo.webp"
+                alt="Am Tronics Logo"
+                className="w-16 h-16 object-contain mb-1"
+              />
               <div className="font-bold text-lg tracking-widest">AM TRONICS</div>
               <div className="text-xs">+96555501387</div>
-              <div className="mt-1 font-semibold">Order #{order._id.slice(-8).toUpperCase()}</div>
+              <div className="mt-1 font-semibold">
+                Order #{order._id.slice(-8).toUpperCase()}
+              </div>
               <div className="flex gap-2 mt-1">
-                {order.status === "pending" && <span className="border px-2 py-0.5 rounded bg-yellow-100 text-yellow-800">Unpaid</span>}
-                {order.status === "completed" && <span className="border px-2 py-0.5 rounded bg-green-100 text-green-800">Paid</span>}
-                <span className="border px-2 py-0.5 rounded bg-gray-100 text-gray-800">Pickup</span>
+                {order.status === "pending" && (
+                  <span className="border px-2 py-0.5 rounded bg-yellow-100 text-yellow-800">
+                    Unpaid
+                  </span>
+                )}
+                {order.status === "completed" && (
+                  <span className="border px-2 py-0.5 rounded bg-green-100 text-green-800">
+                    Paid
+                  </span>
+                )}
+                <span className="border px-2 py-0.5 rounded bg-gray-100 text-gray-800">
+                  Pickup
+                </span>
               </div>
             </div>
             {/* Customer and date */}
             <div className="mb-2">
-              <div><span className="font-semibold">Customer:</span> {order.customerInfo.name || "-"}</div>
-              <div><span className="font-semibold">Date:</span> {formatDate(order.createdAt)}</div>
+              <div>
+                <span className="font-semibold">Customer:</span> {order.customerInfo.name || "-"}
+              </div>
+              <div>
+                <span className="font-semibold">Date:</span> {formatDate(order.createdAt)}
+              </div>
               {order.paymentMethod && (
-                <div><span className="font-semibold">Payment:</span> {order.paymentMethod}</div>
+                <div>
+                  <span className="font-semibold">Payment:</span> {order.paymentMethod}
+                </div>
               )}
             </div>
             <div className="border-b my-2" />
@@ -406,12 +460,18 @@ const getTotalAveCost = () =>
                 if (isProject && Array.isArray(item.products)) {
                   return (
                     <div key={idx} className="mb-1">
-                      <div className="font-semibold">{item.projectName || "Project Bundle"}</div>
+                      <div className="font-semibold">
+                        {item.projectName || "Project Bundle"}
+                      </div>
                       {item.products.map((prod, pidx) => (
                         <div key={pidx} className="flex justify-between">
                           <span>{prod.en_name}</span>
-                          <span>{item.quantity}x {Number(prod.price).toFixed(3)} KD</span>
-                          <span>{(item.quantity * Number(prod.price)).toFixed(3)} KD</span>
+                          <span>
+                            {item.quantity}x {Number(prod.price).toFixed(3)} KD
+                          </span>
+                          <span>
+                            {(item.quantity * Number(prod.price)).toFixed(3)} KD
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -420,8 +480,12 @@ const getTotalAveCost = () =>
                   return (
                     <div key={idx} className="flex justify-between">
                       <span>{item.product?.en_name || "Unnamed product"}</span>
-                      <span>{item.quantity}x {Number(item.product?.price).toFixed(3)} KD</span>
-                      <span>{(item.quantity * Number(item.product?.price)).toFixed(3)} KD</span>
+                      <span>
+                        {item.quantity}x {Number(item.product?.price).toFixed(3)} KD
+                      </span>
+                      <span>
+                        {(item.quantity * Number(item.product?.price)).toFixed(3)} KD
+                      </span>
                     </div>
                   );
                 }
@@ -447,8 +511,12 @@ const getTotalAveCost = () =>
               <div className="flex justify-between font-bold text-base">
                 <span>Total</span>
                 <span>
-      {((order.total || getItemsTotal()) + (order.shippingFee || 0)).toFixed(3)} KD
-    </span>
+                  {(
+                    (order.total || getItemsTotal()) +
+                    (order.shippingFee || 0)
+                  ).toFixed(3)}{" "}
+                  KD
+                </span>
               </div>
             </div>
             <div className="border-b my-2" />
@@ -468,11 +536,6 @@ const getTotalAveCost = () =>
             </div>
           </div>
 
-
-
-
-
-
           {/* Print Button (only visible on screen) */}
           <Button
             onClick={handlePrint}
@@ -482,6 +545,15 @@ const getTotalAveCost = () =>
             <Printer className="w-4 h-4 mr-2" />
             Print Order
           </Button>
+          <Button
+                      onClick={handleDeleteOrder}
+                      disabled={isLoading}
+                      variant="destructive"
+                      className="w-full print:hidden flex items-center gap-2"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      {isLoading ? "Deleting Order..." : "Delete Order"}
+                    </Button>
         </div>
       </DialogContent>
     </Dialog>
