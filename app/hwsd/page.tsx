@@ -75,13 +75,12 @@ export default function HWSDPage() {
     }
   };
 
-  // Fetch all fees for export (ignores pagination, uses current dateFilter)
-  const fetchAllFeesForExport = async () => {
-    const response = await fetch(`/api/hwsd?limit=100000&dateFilter=${dateFilter}`);
-    if (!response.ok) throw new Error("Failed to fetch all fees");
-    const data = await response.json();
-    return data.fees || [];
-  };
+const fetchAllFeesForExport = async () => {
+  const response = await fetch(`/api/hwsd?limit=100000&dateFilter=${dateFilter}`);
+  if (!response.ok) throw new Error("Failed to fetch all fees");
+  const data = await response.json();
+  return data.fees || [];
+};
 
   // Export PDF
   const handleExportPDF = async () => {
@@ -241,12 +240,14 @@ export default function HWSDPage() {
       const doc = new jsPDF();
 
       // Add logos at the top
-      doc.addImage('/amtronics-logo.webp', 'WEBP', 14, 10, 28, 28, undefined, 'FAST', 0);
+      // doc.addImage('/amtronics-logo.webp', 'WEBP', 14, 10, 28, 28, undefined, 'FAST', 0);
+      doc.addImage('/amtronics-logo.jpg', 'JPEG', 14, 10, 28, 28);
+      
       doc.addImage('/invoice-amtronics-logo-at-the-end.jpg', 'JPEG', 170, 10, 28, 28, undefined, 'FAST', 0);
 
       // Title and metadata
       doc.setFontSize(16);
-      doc.text("Hardware & Software Design Fee Details", 14, 50);
+      doc.text("Hardware & Software & 3D print", 14, 50);
       
       // Fee details table
       autoTable(doc, {
@@ -269,22 +270,23 @@ export default function HWSDPage() {
       const finalY = (doc as any).lastAutoTable?.finalY || 180;
 
       // Add signature boxes at the bottom
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const boxWidth = 80;
-      const boxHeight = 30;
-      const margin = 20;
-      const yPos = pageHeight - boxHeight - margin;
+const pageHeight = doc.internal.pageSize.getHeight();
+const pageWidth = doc.internal.pageSize.getWidth();
+const boxWidth = 50; // Reduced from 80
+const boxHeight = 20; // Reduced from 30
+const margin = 20;
+const yPos = pageHeight - boxHeight - margin;
 
-      // Company Signature (left)
-      doc.setDrawColor(100);
-      doc.setLineWidth(0.5);
-      doc.rect(20, yPos, boxWidth, boxHeight);
-      doc.setFontSize(10);
-      doc.text("Company Signature", 20 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
+// Company Signature (far left)
+doc.setDrawColor(100);
+doc.setLineWidth(0.5);
+doc.rect(10, yPos, boxWidth, boxHeight); // Moved to x=10
+doc.setFontSize(8); // Smaller font
+doc.text("Signature and stamp", 10 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
 
       // Customer Signature (right)
-      doc.rect(110, yPos, boxWidth, boxHeight);
-      doc.text("Customer Signature", 110 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
+doc.rect(pageWidth - boxWidth - 10, yPos, boxWidth, boxHeight); // Positioned from right edge
+doc.text("Customer Signature", pageWidth - boxWidth - 10 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
 
       // Save the PDF
       doc.save(`hwsd-fee-${fee._id}.pdf`);

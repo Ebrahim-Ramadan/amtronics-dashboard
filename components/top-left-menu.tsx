@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package, Menu, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle, Shield, MinusCircle } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package, Menu, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle, Shield, MinusCircle, CopySlashIcon } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -174,7 +174,7 @@ export const Topleftmenu = () => {
                 )}
                 aria-current={pathname === '/expenses' ? 'page' : undefined}
               >
-                <Package className="h-4 w-4" />
+                <CopySlashIcon className="h-4 w-4" />
                 Expenses
               </Link>
             </DropdownMenuItem>
@@ -253,7 +253,7 @@ export const Topleftmenu = () => {
                 aria-current={pathname === '/offersControl' ? 'page' : undefined}
               >
                 <MinusCircle className="h-4 w-4" />
-                Hardware&Software Design
+                Hardware & Software & 3D Print
               </Link>
             </DropdownMenuItem>
           </>

@@ -50,6 +50,7 @@ export default function AnalyticsPage() {
   const [month, setMonth] = useState<number | "">("");
   const [day, setDay] = useState<number | "">("");
   const [analytics, setAnalytics] = useState<any[]>([]);
+
   const [engineerBundle, setEngineerBundle] = useState<any[]>([])
   const [engineerName, setEngineerName] = useState<string>("")
   const [loading, setLoading] = useState(false);
@@ -207,9 +208,11 @@ const days = useMemo(() => {
     },
   };
 
+const [exporting, setExporting] = useState(false);
 
 
   function handleExportExcel() {
+     setExporting(true);
     // Prepare data for Excel
     const data = orders.map((order: any) => {
  // Calculate total for each order based on product price and quantity
@@ -260,23 +263,19 @@ const days = useMemo(() => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Orders");
     XLSX.writeFile(wb, "orders-analytics.xlsx");
+    setExporting(false);
   }
 
   function handleExportPDF() {
+    setExporting(true);
     const doc = new jsPDF();
 
     orders.forEach((order: any, idx: number) => {
       if (idx > 0) doc.addPage();
 
-      // --- HEADER ROW: Logo left, logo right (with transparent background) ---
-      // Set fill color to white to create transparent background
-      doc.setFillColor(255, 255, 255);
-      
-      // Logo (top left) with transparency
-      doc.addImage('/amtronics-logo.webp', 'WEBP', 14, 10, 28, 28, undefined, 'FAST', 0);
-
-      // Logo (top right) with transparency
-      doc.addImage('/invoice-amtronics-logo-at-the-end.jpg', 'JPEG', 170, 10, 28, 28, undefined, 'FAST', 0);
+      // --- HEADER ROW: Logo left, logo right (without background modification) ---
+      doc.addImage('/amtronics-logo.jpg', 'JPEG', 14, 10, 28, 28);
+      doc.addImage('/invoice-amtronics-logo-at-the-end.jpg', 'JPEG', 170, 10, 28, 28);
 
       // --- Rest of the header ---
       doc.setFontSize(16);
@@ -394,23 +393,36 @@ const days = useMemo(() => {
         contentEndY = margin;
       }
 
-      // --- Signature boxes ---
-      const boxWidth = 80;
-      const yPos = contentEndY + margin;
+  // Inside handleExportPDF function, replace the signature box section:
 
-      // Company Signature (left)
-      doc.setDrawColor(100);
-      doc.setLineWidth(0.5);
-      doc.rect(20, yPos, boxWidth, boxHeight);
-      doc.setFontSize(10);
-      doc.text("Company Signature", 20 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
+// --- Signature boxes at bottom of page ---
+const pageWidth = doc.internal.pageSize.getWidth();
+const signatureConfig = {
+  boxWidth: 35,   // Even smaller width
+  boxHeight: 15,  // Same height as before
+  margin: 10,     // Same margin
+  bottomMargin: 15 // Distance from bottom of page
+};
 
-      // Customer Signature (right)
-      doc.rect(110, yPos, boxWidth, boxHeight);
-      doc.text("Customer Signature", 110 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
-    });
+// Always position signatures at the bottom of the page
+const yPos = pageHeight - signatureConfig.bottomMargin - signatureConfig.boxHeight;
+
+// Company Signature (far left)
+doc.setDrawColor(100);
+doc.setLineWidth(0.5);
+doc.rect(signatureConfig.margin, yPos, signatureConfig.boxWidth, signatureConfig.boxHeight);
+doc.setFontSize(8);
+doc.text("Signature", signatureConfig.margin + signatureConfig.boxWidth/2, yPos + signatureConfig.boxHeight/2 - 2, { align: "center" });
+doc.text("&stamp", signatureConfig.margin + signatureConfig.boxWidth/2, yPos + signatureConfig.boxHeight/2 + 4, { align: "center" });
+
+// Customer Signature (far right)
+doc.rect(pageWidth - signatureConfig.margin - signatureConfig.boxWidth, yPos, signatureConfig.boxWidth, signatureConfig.boxHeight);
+doc.text("Customer", pageWidth - signatureConfig.margin - signatureConfig.boxWidth/2, yPos + signatureConfig.boxHeight/2 - 2, { align: "center" });
+doc.text("Signature", pageWidth - signatureConfig.margin - signatureConfig.boxWidth/2, yPos + signatureConfig.boxHeight/2 + 4, { align: "center" });
+});
 
     doc.save("orders-detailed.pdf");
+     setExporting(false);
   }
 
   return (
@@ -520,26 +532,33 @@ const days = useMemo(() => {
           <CardHeader>
             <div className="flex justify-between items-center flex-col md:flex-row gap-2">{chartTitle}  
               <div className="flex gap-2">
-              <button
-                className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
-                onClick={handleExportExcel}
-                disabled={orders.length === 0}
-                title="Export filtered orders to Excel"
-              >
-                <Upload size={14}/>
-                Export Excel
-              </button>
-              
-              {/* Add the new PDF export button */}
-              <button
-                className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
-                onClick={handleExportPDF}
-                disabled={orders.length === 0}
-                title="Export filtered orders to PDF"
-              >
-                <FileText size={14}/>
-                Export PDF
-              </button>
+<button
+  className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
+  onClick={handleExportExcel}
+  disabled={orders.length === 0 || exporting }
+  title="Export filtered orders to Excel"
+>
+  {exporting ? (
+    <Loader2 size={14} className="animate-spin" />
+  ) : (
+    <Upload size={14} />
+  )}
+  {exporting  ? 'Exporting...' : 'Export Excel'}
+</button>
+
+<button
+  className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition text-sm flex flex-row gap-2 items-center disabled:opacity-50"
+  onClick={handleExportPDF}
+  disabled={orders.length === 0 || exporting}
+  title="Export filtered orders to PDF"
+>
+  {exporting ? (
+    <Loader2 size={14} className="animate-spin" />
+  ) : (
+    <FileText size={14} />
+  )}
+  {exporting ? 'Exporting...' : 'Export PDF'}
+</button>
             </div>
           </div>
           </CardHeader>
