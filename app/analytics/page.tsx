@@ -268,22 +268,32 @@ const days = useMemo(() => {
     orders.forEach((order: any, idx: number) => {
       if (idx > 0) doc.addPage();
 
-      // Header
+      // --- HEADER ROW: Logo left, logo right (with transparent background) ---
+      // Set fill color to white to create transparent background
+      doc.setFillColor(255, 255, 255);
+      
+      // Logo (top left) with transparency
+      doc.addImage('/amtronics-logo.webp', 'WEBP', 14, 10, 28, 28, undefined, 'FAST', 0);
+
+      // Logo (top right) with transparency
+      doc.addImage('/invoice-amtronics-logo-at-the-end.jpg', 'JPEG', 170, 10, 28, 28, undefined, 'FAST', 0);
+
+      // --- Rest of the header ---
       doc.setFontSize(16);
-      doc.text(`Order Report`, 14, 18);
+      doc.text(`Order Report`, 14, 45);
       doc.setFontSize(10);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 26);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 52);
 
       // Order meta
       doc.setFontSize(12);
-      doc.text(`Order ID: ${order._id}`, 14, 36);
+      doc.text(`Order ID: ${order._id}`, 14, 62);
       doc.setFontSize(10);
-      doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 42);
-      doc.text(`Status: ${order.status}`, 14, 48);
-      doc.text(`Payment: ${order.paymentMethod}`, 14, 54);
+      doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`, 14, 68);
+      doc.text(`Status: ${order.status}`, 14, 74);
+      doc.text(`Payment: ${order.paymentMethod}`, 14, 80);
 
       // Customer info
-      const custY = 62;
+      const custY = 88;
       doc.setFontSize(11);
       doc.text('Customer:', 14, custY);
       const customerLines = [
@@ -369,6 +379,35 @@ const days = useMemo(() => {
         const splitNotes = doc.splitTextToSize(order.notes, 180);
         doc.text(splitNotes, 14, notesY + 6);
       }
+
+      // After adding all content, check if we need a new page for signatures
+      let contentEndY = finalY + (order.notes ? 40 : 20); // Adjust based on whether notes exist
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const boxHeight = 30;
+      const margin = 20;
+      const neededSpace = boxHeight + margin * 2;
+
+      // If there isn't enough space, add a new page
+      if (contentEndY + neededSpace > pageHeight - margin) {
+        doc.addPage();
+        // Reset contentEndY since we're on a new page
+        contentEndY = margin;
+      }
+
+      // --- Signature boxes ---
+      const boxWidth = 80;
+      const yPos = contentEndY + margin;
+
+      // Company Signature (left)
+      doc.setDrawColor(100);
+      doc.setLineWidth(0.5);
+      doc.rect(20, yPos, boxWidth, boxHeight);
+      doc.setFontSize(10);
+      doc.text("Company Signature", 20 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
+
+      // Customer Signature (right)
+      doc.rect(110, yPos, boxWidth, boxHeight);
+      doc.text("Customer Signature", 110 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
     });
 
     doc.save("orders-detailed.pdf");

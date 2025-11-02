@@ -233,6 +233,67 @@ export default function HWSDPage() {
   // Calculate total pages
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  // Add this function after the existing handleExportPDF function
+  const handleExportSinglePDF = async (fee: HWSDFee) => {
+    try {
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+      const doc = new jsPDF();
+
+      // Add logos at the top
+      doc.addImage('/amtronics-logo.webp', 'WEBP', 14, 10, 28, 28, undefined, 'FAST', 0);
+      doc.addImage('/invoice-amtronics-logo-at-the-end.jpg', 'JPEG', 170, 10, 28, 28, undefined, 'FAST', 0);
+
+      // Title and metadata
+      doc.setFontSize(16);
+      doc.text("Hardware & Software Design Fee Details", 14, 50);
+      
+      // Fee details table
+      autoTable(doc, {
+        startY: 60,
+        head: [["Field", "Value"]],
+        body: [
+          ["Title", fee.title],
+          ["Service Type", fee.serviceType],
+          ["Price (KD)", fee.price.toFixed(3)],
+          ["Created Date", new Date(fee.createdAt).toLocaleDateString()],
+          ["Notes", fee.notes || "N/A"],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+        styles: { fontSize: 10, cellPadding: 4 },
+        margin: { left: 14, right: 14 }
+      });
+
+      // Get the final Y position after the table
+      const finalY = (doc as any).lastAutoTable?.finalY || 180;
+
+      // Add signature boxes at the bottom
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const boxWidth = 80;
+      const boxHeight = 30;
+      const margin = 20;
+      const yPos = pageHeight - boxHeight - margin;
+
+      // Company Signature (left)
+      doc.setDrawColor(100);
+      doc.setLineWidth(0.5);
+      doc.rect(20, yPos, boxWidth, boxHeight);
+      doc.setFontSize(10);
+      doc.text("Company Signature", 20 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
+
+      // Customer Signature (right)
+      doc.rect(110, yPos, boxWidth, boxHeight);
+      doc.text("Customer Signature", 110 + boxWidth / 2, yPos + boxHeight / 2, { align: "center" });
+
+      // Save the PDF
+      doc.save(`hwsd-fee-${fee._id}.pdf`);
+      toast.success("PDF exported successfully!");
+    } catch (err: any) {
+      toast.error("Failed to export PDF: " + (err.message || err));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full mx-auto space-y-6">
@@ -325,6 +386,15 @@ export default function HWSDPage() {
                         <td className="px-4 py-3">{new Date(fee.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleExportSinglePDF(fee)}
+                              className="h-8 w-8 p-0"
+                              title="Export PDF"
+                            >
+                              <Download size={14} />
+                            </Button>
                             <Button 
                               variant="outline" 
                               size="sm"
