@@ -240,7 +240,7 @@ export default function HWSDPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Hardware & Software Design</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Hardware & Software Design & Print</h1>
             {/* Date Filter */}
             <select
               value={dateFilter}

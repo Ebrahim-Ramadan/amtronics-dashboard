@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ExpenseForm from "./ExpenseForm";
+import { utils as XLSXUtils, writeFile as XLSXWriteFile } from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Expense {
   _id: string;
@@ -35,6 +38,43 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
     }
   };
 
+  // Export to Excel
+  const handleExportExcel = () => {
+    const data = expenses.map(e => ({
+      Name: e.name,
+      Cost: e.cost,
+      Quantity: e.quantity ?? 1,
+      Date: e.date ? new Date(e.date).toLocaleDateString() : "",
+      Note: e.note || "",
+    }));
+    const ws = XLSXUtils.json_to_sheet(data);
+    const wb = XLSXUtils.book_new();
+    XLSXUtils.book_append_sheet(wb, ws, "Expenses");
+    XLSXWriteFile(wb, "expenses.xlsx");
+  };
+
+  // Export to PDF
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Expenses", 14, 10);
+    autoTable(doc, {
+      head: [["Name", "Cost", "Qty", "Date", "Note"]],
+      body: expenses.map(e => [
+        e.name,
+        `${e.cost.toFixed(2)} KWD`,
+        e.quantity ?? 1,
+        e.date ? new Date(e.date).toLocaleDateString() : "",
+        e.note || "",
+      ]),
+      startY: 20,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+      styles: { fontSize: 10, cellPadding: 4 },
+      margin: { left: 14, right: 14 }
+    });
+    doc.save("expenses.pdf");
+  };
+
   return (
     <div className="space-y-4">
       {editing && (
@@ -47,8 +87,13 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
         </div>
       )}
 
+      <div className="flex gap-2 mb-2 justify-end">
+        <Button variant="outline" onClick={handleExportExcel}>Export Excel</Button>
+        <Button variant="outline" onClick={handleExportPDF}>Export PDF</Button>
+      </div>
+
       <div className="overflow-x-auto">
-        <table className="w-full table-auto">
+        <table className="w-full table-auto"> 
           <thead>
             <tr className="text-left">
               <th className="p-2">Name</th>
