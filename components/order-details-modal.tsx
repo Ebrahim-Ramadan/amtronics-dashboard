@@ -432,7 +432,7 @@ const getTotalAveCost = () =>
             <div className="flex flex-col gap-1 mb-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>{(order.total || getItemsTotal())} KD</span>
+                <span>{(order.total || getItemsTotal()).toFixed(3)} KD</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
@@ -447,24 +447,9 @@ const getTotalAveCost = () =>
               <div className="flex justify-between font-bold text-base">
                 <span>Total</span>
                 <span>
-    {(
-      (order.total || getItemsTotal()) +
-      (order.shippingFee || 0)
-    ).toFixed(3)} KD
-  </span>
+      {((order.total || getItemsTotal()) + (order.shippingFee || 0)).toFixed(3)} KD
+    </span>
               </div>
-              {/* <div className="flex justify-between">
-                <span>Remaining</span>
-                <span>
-                  {(
-                    -(
-                      getItemsTotal() +
-                      (order.shippingFee || 0) -
-                      (order.discount || 0)
-                    )
-                  ).toFixed(3)} KD
-                </span>
-              </div> */}
             </div>
             <div className="border-b my-2" />
             {/* Footer */}
