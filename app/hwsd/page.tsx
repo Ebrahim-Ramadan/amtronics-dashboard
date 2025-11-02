@@ -547,7 +547,9 @@ export default function HWSDPage() {
                 <SelectContent>
                   <SelectItem value="hardware">Hardware</SelectItem>
                   <SelectItem value="software">Software</SelectItem>
-                  <SelectItem value="both">Both</SelectItem>
+                  
+                  <SelectItem value="3d-print">3D Print</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                 </SelectContent>
               </Select>
             </div>
