@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ExpenseForm from "./ExpenseForm";
@@ -20,6 +20,9 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [editing, setEditing] = useState<Expense | null>(null);
 
+  // New: filter range state ('30' days, '60' days, '180' days, '365' days, 'all')
+  const [range, setRange] = useState<'30' | '60' | '180' | '365' | 'all'>('all');
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this expense?")) return;
     try {
@@ -38,9 +41,32 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
     }
   };
 
-  // Export to Excel
+  // Helper: compute start date for selected range
+  const startDate = useMemo(() => {
+    const now = new Date();
+    if (range === 'all') return null;
+    const days = Number(range);
+    const d = new Date(now);
+    d.setDate(d.getDate() - days);
+    // clear time to start-of-day for inclusive comparison
+    d.setHours(0,0,0,0);
+    return d;
+  }, [range]);
+
+  // Filtered expenses used both for display and exports
+  const filteredExpenses = useMemo(() => {
+    if (!startDate) return expenses;
+    const now = new Date();
+    return expenses.filter(e => {
+      if (!e.date) return false; // treat missing date as outside range (only included in 'all')
+      const d = new Date(e.date);
+      return d >= startDate && d <= now;
+    });
+  }, [expenses, startDate]);
+
+  // Export to Excel (use filteredExpenses)
   const handleExportExcel = () => {
-    const data = expenses.map(e => ({
+    const data = filteredExpenses.map(e => ({
       Name: e.name,
       Cost: e.cost,
       Quantity: e.quantity ?? 1,
@@ -50,16 +76,16 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
     const ws = XLSXUtils.json_to_sheet(data);
     const wb = XLSXUtils.book_new();
     XLSXUtils.book_append_sheet(wb, ws, "Expenses");
-    XLSXWriteFile(wb, "expenses.xlsx");
+    XLSXWriteFile(wb, `expenses-${range === 'all' ? 'all' : `${range}d`}.xlsx`);
   };
 
-  // Export to PDF
+  // Export to PDF (use filteredExpenses)
   const handleExportPDF = () => {
     const doc = new jsPDF();
     doc.text("Expenses", 14, 10);
     autoTable(doc, {
       head: [["Name", "Cost", "Qty", "Date", "Note"]],
-      body: expenses.map(e => [
+      body: filteredExpenses.map(e => [
         e.name,
         `${e.cost.toFixed(2)} KWD`,
         e.quantity ?? 1,
@@ -72,7 +98,7 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
       styles: { fontSize: 10, cellPadding: 4 },
       margin: { left: 14, right: 14 }
     });
-    doc.save("expenses.pdf");
+    doc.save(`expenses-${range === 'all' ? 'all' : `${range}d`}.pdf`);
   };
 
   return (
@@ -87,13 +113,33 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
         </div>
       )}
 
-      <div className="flex gap-2 mb-2 justify-end">
-        <Button variant="outline" onClick={handleExportExcel}>Export Excel</Button>
-        <Button variant="outline" onClick={handleExportPDF}>Export PDF</Button>
+      {/* Filter + Export controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2">
+          <select
+            className="border rounded px-2 py-1"
+            value={range}
+            onChange={(e) => setRange(e.target.value as any)}
+          >
+            <option value="30">Last 30 days</option>
+            <option value="60">Last 2 months</option>
+            <option value="180">Last 6 months</option>
+            <option value="365">Last year</option>
+            <option value="all">All time</option>
+          </select>
+          <div className="text-sm text-gray-600 ml-2">
+            Showing {filteredExpenses.length} / {expenses.length}
+          </div>
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" onClick={handleExportExcel} disabled={filteredExpenses.length === 0}>Export Excel</Button>
+          <Button variant="outline" onClick={handleExportPDF} disabled={filteredExpenses.length === 0}>Export PDF</Button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full table-auto"> 
+        <table className="w-full table-auto">
           <thead>
             <tr className="text-left">
               <th className="p-2">Name</th>
@@ -105,7 +151,7 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
             </tr>
           </thead>
           <tbody>
-            {expenses.map(e => (
+            {filteredExpenses.map(e => (
               <tr key={e._id} className="border-t">
                 <td className="p-2">{e.name}</td>
                 <td className="p-2">{e.cost.toFixed(2)} KWD</td>
@@ -120,6 +166,11 @@ export default function ExpensesTable({ initialExpenses }: { initialExpenses: Ex
                 </td>
               </tr>
             ))}
+            {filteredExpenses.length === 0 && (
+              <tr>
+                <td colSpan={6} className="p-4 text-center text-gray-500">No expenses for selected range.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
