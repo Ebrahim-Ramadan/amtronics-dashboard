@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from './ui/button';
-import { LayoutDashboard, Ticket, Package, Menu, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle, Shield, MinusCircle, CopySlashIcon } from 'lucide-react';
+import { LayoutDashboard, Ticket, Package, Menu, CheckCircle, AlignVerticalJustifyStart, PersonStanding, Projector, XCircle, Shield, MinusCircle, CopySlashIcon, Printer } from 'lucide-react';
 import { LogoutButton } from './logout-button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -250,9 +250,9 @@ export const Topleftmenu = () => {
                   "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors",
                   pathname === '/hwsd' && 'bg-gray-100 text-blue-600'
                 )}
-                aria-current={pathname === '/offersControl' ? 'page' : undefined}
+                aria-current={pathname === '/hwsd' ? 'page' : undefined}
               >
-                <MinusCircle className="h-4 w-4" />
+                <Printer className="h-4 w-4" />
                 Hardware & Software & 3D Print
               </Link>
             </DropdownMenuItem>

@@ -226,11 +226,27 @@ const fetchAllFeesForExport = async () => {
     setCurrentPage(page);
   };
 
-  // Calculate total price of all fees
+  // Calculate total price of all fees (current page)
   const totalPrice = fees.reduce((sum, fee) => sum + Number(fee.price), 0);
-  
-  // Calculate total pages
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Total price across all filtered docs (changes only when dateFilter changes)
+  const [totalFilteredPrice, setTotalFilteredPrice] = useState<number>(0);
+
+  // Add totalPages calculation (use totalItems and itemsPerPage)
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const allFees = await fetchAllFeesForExport();
+        const sum = allFees.reduce((s: number, f: HWSDFee) => s + Number(f.price || 0), 0);
+        if (mounted) setTotalFilteredPrice(sum);
+      } catch (err) {
+        if (mounted) setTotalFilteredPrice(0);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [dateFilter]);
 
   // Add this function after the existing handleExportPDF function
   const handleExportSinglePDF = async (fee: HWSDFee) => {
@@ -303,7 +319,7 @@ doc.text("Customer Signature", pageWidth - boxWidth - 10 + boxWidth / 2, yPos + 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 md:gap-4">
             <Topleftmenu />
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Hardware & Software Design & Print</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Hardware & Software Design & 3D Print</h1>
             {/* Date Filter */}
             <select
               value={dateFilter}
@@ -421,7 +437,7 @@ doc.text("Customer Signature", pageWidth - boxWidth - 10 + boxWidth / 2, yPos + 
                     <tr className="border-t bg-gray-50 font-bold">
                       <td className="px-4 py-3">Total</td>
                       <td className="px-4 py-3"></td>
-                      <td className="px-4 py-3">KD {totalPrice.toFixed(2)}</td>
+                      <td className="px-4 py-3">KD {totalFilteredPrice.toFixed(2)}</td>
                       <td className="px-4 py-3"></td>
                       <td className="px-4 py-3"></td>
                       <td className="px-4 py-3"></td>
