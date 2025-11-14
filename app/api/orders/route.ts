@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
   createdAt: 1,
   _id: 1,
   shippingFee: 1,
+  notes: 1,
   paymentMethod: 1,
 };
 

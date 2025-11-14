@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { Order, OrderItem, ProjectBundleItem } from "@/app/page";
@@ -39,6 +39,12 @@ export function OrderDetailsModal({
 }: OrderDetailsModalProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [note, setNote] = useState<string>("");
+  const [savingNote, setSavingNote] = useState(false);
+
+  useEffect(() => {
+    setNote(order?.notes || "");
+  }, [order]);
 
   if (!order) return null;
 
@@ -158,6 +164,27 @@ export function OrderDetailsModal({
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleSaveNote = async () => {
+    if (savingNote) return;
+    setSavingNote(true);
+    try {
+      const res = await fetch("/api/orders/note", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: order._id, notes: note }),
+      });
+      console.log(await res.json());
+      
+      if (!res.ok) throw new Error("Failed to save note");
+      toast.success("Note saved");
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save note");
+    } finally {
+      setSavingNote(false);
+    }
   };
 
   return (
@@ -341,6 +368,44 @@ export function OrderDetailsModal({
                   {order.customerInfo.area}, {order.customerInfo.block},{" "}
                   {order.customerInfo.city}, {order.customerInfo.country}
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* Admin Note (editable only for pending orders) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">Order Note</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {order.status === "pending" ? (
+                  <>
+                    <textarea
+                      className="w-full border rounded p-2 text-sm"
+                      rows={4}
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      placeholder="Add an internal note for this order..."
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        onClick={() => {
+                          setNote(order.notes || "");
+                        }}
+                        variant="outline"
+                        disabled={savingNote}
+                      >
+                        Reset
+                      </Button>
+                      <Button onClick={handleSaveNote} disabled={savingNote || note === (order.notes || "") || note.trim() === ""}>
+                        {savingNote ? "Saving..." : "Save Note"}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-sm text-gray-700">
+                    {order.notes ? order.notes : <span className="text-gray-400">No internal note</span>}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
