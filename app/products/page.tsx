@@ -36,6 +36,7 @@ export interface Product {
   priorityIndex?: number
   hasVarieties?: boolean
   varieties?: Variety[]
+  allow_whatsapp_inquiry?: boolean
 }
 
 interface ProductsResult {

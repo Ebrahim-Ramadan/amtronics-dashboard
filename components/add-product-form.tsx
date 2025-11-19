@@ -62,7 +62,8 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
     ave_cost: 0,
     enable_quantity_in_store: 0,
     is_soldering: false,
-    priorityIndex: 0, // <-- add this line
+    priorityIndex: 0,
+    allow_whatsapp_inquiry: false, // Default to true
   })
 
   const [selected3DFile, setSelected3DFile] = useState<File | null>(null)
@@ -79,9 +80,9 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
         id === "discount" ||
         id === "ave_cost" ||
         id === "enable_quantity_in_store" ||
-        id === "priorityIndex" // <-- handle priorityIndex as number
+        id === "priorityIndex"
           ? Number(value)
-          : id === "is_3d" || id === "is_soldering"
+          : id === "is_3d" || id === "is_soldering" || id === "allow_whatsapp_inquiry"
           ? (e.target as HTMLInputElement).checked
           : value,
     }))
@@ -347,6 +348,22 @@ export function AddProductForm({ onSuccess, onClose }: AddProductFormProps) {
           disabled={isPending}
           className="h-4 w-4"
         />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="allow_whatsapp_inquiry" className="">Allow WhatsApp Inquiry</Label>
+        <div className="col-span-3 flex items-center gap-2">
+          <input
+            id="allow_whatsapp_inquiry"
+            type="checkbox"
+            checked={formData.allow_whatsapp_inquiry}
+            onChange={handleChange}
+            disabled={isPending}
+            className="h-4 w-4"
+          />
+          <span className="text-sm text-gray-600">
+            Customers can ask about this product via WhatsApp
+          </span>
+        </div>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="priorityIndex" className="">Priority Index (Optional)</Label>

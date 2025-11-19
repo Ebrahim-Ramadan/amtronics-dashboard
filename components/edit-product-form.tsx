@@ -41,7 +41,7 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         id === "enable_quantity_in_store" ||
         id === "priorityIndex"
           ? Number(value)
-          : id === "is_3d" || id === "is_soldering"
+          : id === "is_3d" || id === "is_soldering" || id === "allow_whatsapp_inquiry"
           ? (e.target as HTMLInputElement).checked
           : value,
     }))
@@ -286,19 +286,34 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
         <Input id="enable_quantity_in_store" type="number" value={formData.enable_quantity_in_store ?? ""} onChange={handleChange} className="col-span-3" disabled={isPending} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-  <Label htmlFor="is_soldering" className="col-span-3" >
-      mark this product as weldable (قابل للحام) on the main website
-
-  </Label>
-  <input
-    id="is_soldering"
-    type="checkbox"
-    checked={formData.is_soldering || false}
-    onChange={handleChange}
-    disabled={isPending}
-    className="h-4 w-4 col-span-1"
-  />
-</div>
+        <Label htmlFor="is_soldering" className="col-span-3">
+          mark this product as weldable (قابل للحام) on the main website
+        </Label>
+        <input
+          id="is_soldering"
+          type="checkbox"
+          checked={formData.is_soldering || false}
+          onChange={handleChange}
+          disabled={isPending}
+          className="h-4 w-4 col-span-1"
+        />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="allow_whatsapp_inquiry" className="">Allow WhatsApp Inquiry</Label>
+        <div className="col-span-3 flex items-center gap-2">
+          <input
+            id="allow_whatsapp_inquiry"
+            type="checkbox"
+            checked={formData.allow_whatsapp_inquiry ?? false}
+            onChange={handleChange}
+            disabled={isPending}
+            className="h-4 w-4"
+          />
+          <span className="text-sm text-gray-600">
+            Customers can ask about this product via WhatsApp
+          </span>
+        </div>
+      </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="priorityIndex" className="">Priority Index (Optional)</Label>
         <select
