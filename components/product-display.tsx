@@ -193,7 +193,15 @@ export function ProductDisplay({ initialProduct }: ProductDisplayProps) {
             <img src={product.image.split(',')[0]} alt={product.en_name} className="mt-2 w-32 h-32 object-cover" />
           </div>
         )}
-
+        
+ <div>
+   <strong>Allow WhatsApp Inquiry:</strong>{" "}
+   {product.allow_whatsapp_inquiry === undefined
+     ? "Not set"
+     : product.allow_whatsapp_inquiry
+       ? "Yes"
+       : "No"}
+ </div>
         {/* Render varieties if they exist */}
         {product.hasVarieties && product.varieties && product.varieties.length > 0 && (
           <div className="mt-4">

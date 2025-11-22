@@ -19,12 +19,19 @@ interface EditProductFormProps {
 
 export function EditProductForm({ product, onSuccess, onClose }: EditProductFormProps) {
   const [isPending, startTransition] = useTransition()
-  const [formData, setFormData] = useState<Product>(product)
+  const [formData, setFormData] = useState<Product>({
+    ...product,
+    allow_whatsapp_inquiry: product.allow_whatsapp_inquiry ?? true, // ensure populated
+  })
   const [selected3DFile, setSelected3DFile] = useState<File | null>(null)
   const [uploading3D, setUploading3D] = useState(false)
 
   useEffect(() => {
-    setFormData(product)
+    setFormData(prev => ({
+      ...prev,
+      ...product,
+      allow_whatsapp_inquiry: product.allow_whatsapp_inquiry ?? true,
+    }))
   }, [product])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -304,7 +311,7 @@ export function EditProductForm({ product, onSuccess, onClose }: EditProductForm
           <input
             id="allow_whatsapp_inquiry"
             type="checkbox"
-            checked={formData.allow_whatsapp_inquiry ?? false}
+            checked={formData.allow_whatsapp_inquiry ?? true}
             onChange={handleChange}
             disabled={isPending}
             className="h-4 w-4"

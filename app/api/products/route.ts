@@ -27,6 +27,7 @@ export interface Product {
   ar_brand?: string
   en_brand?: string
   model_3d_url?: string
+  allow_whatsapp_inquiry?: boolean
 }
 
 export async function GET(request: NextRequest) {
@@ -113,6 +114,7 @@ export async function GET(request: NextRequest) {
       is_soldering: 1,
       hasVarieties: 1,
       varieties: 1,
+      allow_whatsapp_inquiry: 1,
     }
     }
    
